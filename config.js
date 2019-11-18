@@ -1,6 +1,6 @@
 const config = {
 	API_KEY: "",
-	SECRET_HASH: "3"
+	SECRET_HASH: "4"
 }
 
 
