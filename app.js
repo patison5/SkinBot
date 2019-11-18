@@ -1,7 +1,15 @@
 const request = require('request');
 const totp = require('totp-generator');
 const express = require('express')
+const bodyParser = require("body-parser");
+
 const app = express() 
+
+app.use(express.static('public'));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
+app.set("view engine", "ejs");
 
 
 const CONFIG = require('./config')
@@ -37,6 +45,10 @@ var getMarketOrders = {
 }
 
 
+
+var myBalance = 0;
+
+
 function encodeQueryData(data) {
    const ret = [];
    for (let d in data)
@@ -58,7 +70,6 @@ function cancelMyOrder (myOrders, _isUpdated , price) {
 	for (var i = 0; i < myOrders.length; i++) {
 		var order = myOrders[i];
 
-		// var deleteURL = `https://bitskins.com/api/v1/cancel_buy_orders/?api_key=${urlOptions.API_KEY}&code=${urlOptions.code}&app_id=${urlOptions.app_id}&buy_order_ids=${order.buy_order_id}`;
 		var deleteURL = `https://bitskins.com/api/v1/cancel_buy_orders/?${encodeQueryData({
 			"api_key": 				urlOptions.API_KEY,
 			"code": 				urlOptions.code,
@@ -98,8 +109,6 @@ function createNewMyOrder (price, count, market_hash_name) {
 		"app_id": 	570 							//надо обработать...
 	}
 
-
-	// var updateURL = `https://bitskins.com/api/v1/create_buy_order/?api_key=${urlOptions.API_KEY}&code=${urlOptions.code}&app_id=${newOrderSetting.app_id}&name=${newOrderSetting.name}&price=${newOrderSetting.price}&quantity=${newOrderSetting.value}`;
 	var updateURL = `https://bitskins.com/api/v1/create_buy_order/?${encodeQueryData({
 		"api_key": 				urlOptions.API_KEY,
 		"code": 				urlOptions.code,
@@ -200,18 +209,42 @@ let mainTimer = setTimeout(function tick() {
 			var respData = JSON.parse(body);
 			if (respData.status == 'success') {
 				console.log(`My balance is: ${respData.data.available_balance}$`)
+
+				myBalance = respData.data.available_balance;
 			}
 		}
 	})
 
-  mainTimer = setTimeout(tick, 60000); // (*)
+  mainTimer = setTimeout(tick, 60000);
 }, 10);
 
 
 
 
 app.get('/', function (req, res) {
-	res.send('Hello World')
+
+	var data = [];
+
+	var getMyOrders = `https://bitskins.com/api/v1/get_active_buy_orders/?${encodeQueryData({
+		"api_key": 				urlOptions.API_KEY,
+		"code": 				urlOptions.code,
+		"app_id": 				urlOptions.app_id,
+		"page": 				1,
+	})}`;
+
+
+	request.post(getMyOrders, function (error, response, body) {
+		if (!error) {
+			var respData = JSON.parse(body);
+
+			if (respData.status == 'success') {
+				res.render('index', {
+					data: 	 respData.data.orders,
+					balance: myBalance
+				})
+			}
+		}
+	})
 
 	console.log('someone get here..... ')
 })

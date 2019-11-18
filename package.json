@@ -2,15 +2,19 @@
   "name": "test",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon --watch app.js"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "body-parser": "^1.19.0",
     "deleted": "^1.0.5",
+    "ejs": "^2.7.2",
     "express": "^4.17.1",
+    "nodemon": "^1.19.4",
     "notp": "^2.0.3",
     "onceler": "0.0.5",
     "request": "^2.88.0",

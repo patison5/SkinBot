@@ -1,0 +1,165 @@
+/* ************************************************************** */
+/* *************************** RESET **************************** */
+/* ************************************************************** */
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+html { height: 100%; }
+body {
+	height: 100%;
+	width: 100%;
+	font: 13px/16px 'Montserrat regular', sans-serif, Arial, Tahoma;
+	background: #fff;
+	/*overflow: hidden;*/
+	background: url('../images/bg2.jpg');
+	-webkit-background-size: cover;
+	background-size: cover;
+}
+ol, ul, li { list-style: none; }
+* {
+	margin: 0;
+	outline: none;
+	padding: 0;
+
+	-webkit-box-sizing: border-box;
+	   -moz-box-sizing: border-box;
+			box-sizing: border-box;
+}
+
+a 		{ color: #686868; text-decoration: none; }
+a:hover { color: #000; text-decoration: underline;}
+
+
+.clearfix:before,
+.clearfix:after {
+	content: " ";
+	display: table;
+}
+.clearfix:after { clear: both; }
+
+.left { float:left; }
+.right { float:right; }
+
+
+input { -webkit-appearance: none; }
+
+.wraper {
+	box-sizing: border-box;
+	overflow: hidden;
+}
+
+
+/* ************************************************************** */
+/* **********************  ОСНОВНЫЕ СТИЛИ *********************** */
+/* ************************************************************** */
+
+.wraper {
+	width: 960px;
+	height: 600px;
+	margin: 0 auto;
+	top: 50%;
+	position: relative;
+	margin-top: -300px;
+	display: block;
+	background: #fff;
+	overflow: hidden;
+}
+
+
+.header {
+	display: block;
+	overflow: hidden;	
+}
+
+.header-top {
+	display: block;
+	border: 1px dashed #4a76a8;
+	padding: 15px;
+	overflow: hidden;
+	border-bottom: none;
+}
+
+.header__title {
+	display: block;
+	float: left;
+}
+
+.my__balance {
+	display: block;
+	float: right;
+}
+
+
+.header__menu {
+	display: block;
+	overflow: hidden;	
+	background: #4a76a8;
+	color: #fff;
+}
+
+.main-menu {
+	list-style: none;
+	padding: 15px;
+	display: flex;
+	justify-content: flex-end;
+}
+
+
+.main-menu__element {
+	display: block;
+	margin-left: 15px;
+}
+
+.main-menu__element a {
+	color: #fff;
+}
+
+
+
+
+.content {
+	margin-top: 20px;
+	padding: 10px;
+	border: 1px dashed #4a76a8;
+}
+
+.orders {
+	width: 100%;
+	text-align: center;
+	border-spacing: 0;
+}
+
+
+.orders thead,
+.orders tfoot {
+	width: 100%;
+	background: #4a76a8;
+	color: #fff;
+}
+
+
+
+.orders td {
+	padding: 15px 0;
+}
+
+.orders tr {
+	width: 100%;
+}

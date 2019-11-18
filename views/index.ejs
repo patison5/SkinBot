@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Skin bot</title>
+
+	<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+	<div class="wraper">
+		<div class="header">
+			<div class="header-top">
+				<h1 class="header__title">Welcome to my Skin bot</h1>
+				<span class="my__balance">Balance: <%= balance %>$</span>
+			</div>
+
+			<div class="header__menu">
+				<ul class="main-menu">
+					<li class="main-menu__element"><a href="#">Balance</a></li>
+					<li class="main-menu__element"><a href="#">Orders</a></li>
+					<li class="main-menu__element"><a href="#">Create order</a></li>
+				</ul>
+			</div>
+		</div>
+
+		<div class="content">
+			
+			<table class="orders">
+				<thead>
+					<tr>
+						<td>id</td>
+						<td>market name</td>
+						<td>price</td>
+						<td>created</td>
+						<td>updated</td>
+						<td>place in queue</td>
+					</tr>
+				</thead>
+
+				<tbody>
+
+					<!-- карточка товара -->
+					<% data.forEach(function (item) { %>
+
+						
+						<tr>
+							<td><%= item.buy_order_id %></td>
+							<td><%= item.market_hash_name %></td>
+							<td><%= item.price %></td>
+							<td><%= item.created_at %></td>
+							<td><%= item.updated_at %></td>
+							<td><%= item.place_in_queue %></td>
+						</tr>
+
+					<% });%>
+					<!-- карточка товара -->
+
+
+					
+				</tbody>
+
+				<tfoot>
+					<tr>
+						<td>id</td>
+						<td>market name</td>
+						<td>price</td>
+						<td>created</td>
+						<td>updated</td>
+						<td>place in queue</td>
+					</tr>
+				</tfoot>
+			</table>
+		</div>
+	</div>
+</body>
+</html>
