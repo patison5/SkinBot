@@ -1,6 +1,6 @@
 # SkinBot
 
-#### installation
+### installation
 
 Create config.js in root directory and paste there this code.
 
@@ -12,4 +12,15 @@ const config = {
 
 
 module.exports = config;
+```
+
+Run the following command
+```bash
+$ npm install
+```
+
+
+To start server
+```bash
+$ node app.js
 ```
