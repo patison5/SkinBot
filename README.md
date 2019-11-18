@@ -1,6 +1,8 @@
 # SkinBot
 
-####installation
+#### installation
+
+Create config.js in root directory and paste there this code.
 
 ```javascript
 	const config = {
