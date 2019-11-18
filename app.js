@@ -10,7 +10,7 @@ const secretHash = "";
 
 var code = totp(secretHash);
 
-const myMaxPrice = 81;
+const myMaxPrice = 15;
 
 var myAutoOrders = [
 	{
@@ -73,6 +73,12 @@ function cancelMyOrder (myOrders, _isUpdated , price) {
     			if (respData.status == 'success') {
     				var data = respData.data;
     				console.log(`${data.buy_order_ids} removed successfully!`)
+
+
+    				// не забыть испарвить вероятность слияние массивов.. проверить работу кол-бэка и создание нового ордера
+    				if ((_isUpdated && (myOrders.length != 0)))
+						createNewMyOrder(price, myOrders.length, myOrders[0].market_hash_name);
+
     			} else {
     				console.log('##### Status: failed:', respData.data.error_message, "#####")
     			}
@@ -80,11 +86,6 @@ function cancelMyOrder (myOrders, _isUpdated , price) {
 		});
 
 	}
-	
-
-	if ((_isUpdated && (myOrders.length != 0)))
-		createNewMyOrder(price, myOrders.length, myOrders[0].market_hash_name);
-
 
 }
 
@@ -98,11 +99,22 @@ function createNewMyOrder (price, count, market_hash_name) {
 	}
 
 	for (var i = 0; i < count; i++) {
-		console.log('creating my new order');
-	}
+		var updateURL = `https://bitskins.com/api/v1/create_buy_order/?api_key=${urlOptions.API_KEY}&code=${urlOptions.code}&app_id=${newOrderSetting.app_id}&name=${newOrderSetting.name}&price=${newOrderSetting.price}&quantity=${newOrderSetting.value}`;
 
-	
-	console.log(newOrderSetting)
+		request.post(updateURL, function (error, response, body) {
+			if (!error) {
+    			var respData = JSON.parse(body);
+
+    			if (respData.status == 'success') {
+    				var data = respData.data;
+    				console.log(`${data.orders[0].buy_order_id} added successfully!`)
+    				console.log("price of the product: ", data.orders[0].price)
+    			} else {
+    				console.log('##### Status: failed:', respData.data.error_message, "#####")
+    			}
+    		}
+		});
+	}
 }
 
 function callback(error, response, body) {
@@ -127,20 +139,25 @@ function callback(error, response, body) {
     		if (order.is_mine)
     			myOrders.push(order)
     	}
-    	myOrders.push({
-			"buy_order_id": 566595253,
-			"market_hash_name": 'Dark Artistry Cape',
-			"price": '102.02',
-			"suggested_price": '164.10',
-			"is_mine": false,
-			"created_at": 1574030993,
-			"place_in_queue": 0 
-    	})
+   //  	myOrders.push({
+			// "buy_order_id": 566595253,
+			// "market_hash_name": 'Dark Artistry Cape',
+			// "price": '102.02',
+			// "suggested_price": '164.10',
+			// "is_mine": false,
+			// "created_at": 1574030993,
+			// "place_in_queue": 0 
+   //  	})
+
+    	console.log("my", myOrders)
+    	console.log("")
 
 
 
-    	if (orders[0].is_mine)
+    	if (orders[0].is_mine){
+    		console.log('выход по первому условию')
     		return;
+    	}
 
 
     	if (orders[0].price < myMaxPrice) {
