@@ -4,7 +4,7 @@
 
 Create config.js in root directory and paste there this code.
 
-```javascript
+```js
 	const config = {
 		API_KEY: "API_KEY",
 		SECRET_HASH: "API_KEY"
