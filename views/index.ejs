@@ -5,6 +5,7 @@
 	<title>Skin bot</title>
 
 	<link rel="stylesheet" href="css/style.css">
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 </head>
 <body>
 	<div class="wraper">
@@ -16,6 +17,15 @@
 
 			<div class="header__menu">
 				<ul class="main-menu">
+
+					<%if (isWorking == false) { %>
+						<li class="main-menu__element"><a href="/start">start</a></li>
+					<% } else { %>
+						<li class="main-menu__element"><a href="/stop">stop</a></li>
+					<% } %>
+					
+					
+
 					<li class="main-menu__element"><a href="#">Balance</a></li>
 					<li class="main-menu__element"><a href="#">Orders</a></li>
 					<li class="main-menu__element"><a href="#">Create order</a></li>
@@ -34,6 +44,7 @@
 						<td>created</td>
 						<td>updated</td>
 						<td>place in queue</td>
+						<td>Buttons</td>
 					</tr>
 				</thead>
 
@@ -42,14 +53,14 @@
 					<!-- карточка товара -->
 					<% data.forEach(function (item) { %>
 
-						
-						<tr>
+						<tr id="<%= item.buy_order_id %>">
 							<td><%= item.buy_order_id %></td>
 							<td><%= item.market_hash_name %></td>
 							<td><%= item.price %></td>
-							<td><%= item.created_at %></td>
-							<td><%= item.updated_at %></td>
+							<td><%= moment(item.created_at).format( 'MMM-DD-YYYY') %></td>
+							<td><%= moment(item.updated_at).format( 'MMM-DD-YYYY') %></td>
 							<td><%= item.place_in_queue %></td>
+							<td><a href="#" class="removeSingleOrder" data-id="<%= item.buy_order_id %>">удалить</a></td>
 						</tr>
 
 					<% });%>
@@ -67,10 +78,14 @@
 						<td>created</td>
 						<td>updated</td>
 						<td>place in queue</td>
+						<td>Buttons</td>
 					</tr>
 				</tfoot>
 			</table>
 		</div>
 	</div>
+
+
+	<script src="js/app.js"></script>
 </body>
 </html>

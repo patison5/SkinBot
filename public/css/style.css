@@ -27,8 +27,6 @@ body {
 	width: 100%;
 	font: 13px/16px 'Montserrat regular', sans-serif, Arial, Tahoma;
 	background: #fff;
-	/*overflow: hidden;*/
-	background: url('../images/bg2.jpg');
 	-webkit-background-size: cover;
 	background-size: cover;
 }

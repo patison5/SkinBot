@@ -1,7 +1,8 @@
-const request = require('request');
-const totp = require('totp-generator');
-const express = require('express')
-const bodyParser = require("body-parser");
+const request 		= require('request');
+const totp 			= require('totp-generator');
+const express 		= require('express')
+const bodyParser 	= require("body-parser");
+const moment 		= require('moment');
 
 const app = express() 
 
@@ -44,9 +45,21 @@ var getMarketOrders = {
 	})}`
 }
 
+var getMyOrdersURL = `https://bitskins.com/api/v1/get_active_buy_orders/?${encodeQueryData({
+	"api_key": 				urlOptions.API_KEY,
+	"code": 				urlOptions.code,
+	"app_id": 				urlOptions.app_id,
+	"page": 				1,
+})}`;
 
 
-var myBalance = 0;
+var myData = {
+	orders: [],
+	balance: 0,
+};
+
+var _isWorking = true;
+
 
 
 function encodeQueryData(data) {
@@ -61,11 +74,11 @@ function setMyOrderNewPrice (order, myOrders) {
 	var price = parseFloat(order.price) + 0.01
 	console.log("updating order's price " + price)
 
-	cancelMyOrder(myOrders, true, price)
+	cancelMyOrders(myOrders, true, price)
 }
 
 
-function cancelMyOrder (myOrders, _isUpdated , price) {
+function cancelMyOrders (myOrders, _isUpdated , price) {
 
 	for (var i = 0; i < myOrders.length; i++) {
 		var order = myOrders[i];
@@ -155,20 +168,6 @@ function checkMyOrders(error, response, body) {
     		if (order.is_mine)
     			myOrders.push(order)
     	}
-   //  	myOrders.push({
-			// "buy_order_id": 566595253,
-			// "market_hash_name": 'Dark Artistry Cape',
-			// "price": '102.02',
-			// "suggested_price": '164.10',
-			// "is_mine": false,
-			// "created_at": 1574030993,
-			// "place_in_queue": 0 
-   //  	})
-
-    	console.log("my", myOrders)
-    	console.log("")
-
-
 
     	if (orders[0].is_mine){
     		console.log('выход по первому условию')
@@ -198,55 +197,101 @@ function checkMyOrders(error, response, body) {
 }
 
 
-// request.post(getMarketOrders, checkMyOrders);
-
-
-
-let mainTimer = setTimeout(function tick() {
-
+function startTimer () {
 	request.post(getMyBalance, function (error, response, body) {
 		if (!error) {
 			var respData = JSON.parse(body);
 			if (respData.status == 'success') {
 				console.log(`My balance is: ${respData.data.available_balance}$`)
 
-				myBalance = respData.data.available_balance;
+				myData.balance = respData.data.available_balance;
 			}
 		}
 	})
 
-  mainTimer = setTimeout(tick, 60000);
-}, 10);
+
+	request.post(getMarketOrders, checkMyOrders);
 
 
+	request.post(getMyOrdersURL, function (error, response, body) {
+		console.log('')
 
-
-app.get('/', function (req, res) {
-
-	var data = [];
-
-	var getMyOrders = `https://bitskins.com/api/v1/get_active_buy_orders/?${encodeQueryData({
-		"api_key": 				urlOptions.API_KEY,
-		"code": 				urlOptions.code,
-		"app_id": 				urlOptions.app_id,
-		"page": 				1,
-	})}`;
-
-
-	request.post(getMyOrders, function (error, response, body) {
 		if (!error) {
 			var respData = JSON.parse(body);
 
 			if (respData.status == 'success') {
-				res.render('index', {
-					data: 	 respData.data.orders,
-					balance: myBalance
-				})
+				myData.orders = respData.data.orders
 			}
 		}
 	})
 
-	console.log('someone get here..... ')
+	mainTimer = setTimeout(startTimer, delay);
+}
+
+let delay = 5000;
+let mainTimer = setTimeout(startTimer, 10);
+
+
+app.get('/', function (req, res) {
+
+	res.render('index', {
+		data: 	 	myData.orders,
+		balance: 	myData.balance,
+		isWorking: _isWorking,
+		moment: 	moment
+	})
+
+})
+
+app.get('/stop', function (req, res) {
+	console.log('stoping timer..... ')
+	clearTimeout(mainTimer);
+	_isWorking = false;
+
+	res.redirect('/');
+})
+
+app.get('/start', function (req, res) {
+	console.log('starting timer..... ')
+	mainTimer = mainTimer = setTimeout(startTimer, 10);
+	_isWorking = true;
+
+	res.redirect('/');
+})
+
+
+app.post('/removeSingleOrder', function (req, res) {
+	const id = req.body.id;
+
+	var deleteURL = `https://bitskins.com/api/v1/cancel_buy_orders/?${encodeQueryData({
+		"api_key": 				urlOptions.API_KEY,
+		"code": 				urlOptions.code,
+		"app_id": 				urlOptions.app_id,
+		"buy_order_ids": 		id,
+	})}`;
+
+	request.post(deleteURL, function (error, response, body) {
+		if (!error) {
+			var respData = JSON.parse(body);
+
+			if (respData.status == 'success') {
+				var data = respData.data;
+				console.log(`${data.buy_order_ids} removed successfully!`)
+
+				res.json({
+					ok: true, 
+					message: "Эта хуета удалена",
+					id: id
+				})
+			} else {
+				console.log('##### Status: failed:', respData.data.error_message, "#####")
+				res.json({
+					ok: false, 
+					error: respData.data.error_message
+				})
+			}
+		}
+	});
 })
 
 app.listen(3000)
