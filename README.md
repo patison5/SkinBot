@@ -10,7 +10,6 @@ const config = {
 	SECRET_HASH: "YOUR_SECRET_HASH"
 }
 
-
 module.exports = config;
 ```
 
