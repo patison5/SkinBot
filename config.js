@@ -1,9 +1,7 @@
-const setting = {
+const config = {
 	API_KEY: "",
 	SECRET_HASH: ""
 }
 
 
-module.exports = {
-	setting: setting
-}
+module.exports = config;

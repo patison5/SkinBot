@@ -2,28 +2,12 @@ const request = require('request');
 const totp = require('totp-generator');
 
 
-// const CONFIG = require('./config')
+const CONFIG = require('./config')
 
-const API_KEY = "";
-const secretHash = "";
-
-
-var code = totp(secretHash);
+var API_KEY = CONFIG.API_KEY;
+var code 	= totp(CONFIG.SECRET_HASH);
 
 const myMaxPrice = 15;
-
-var myAutoOrders = [
-	{
-		"market_hash_name": 'Dark Artistry Cape',
-		"app_id": 570,
-		"price": 90
-	},
-	{
-		"market_hash_name": 'Dark Artistry Cape',
-		"app_id": 570,
-		"price": 90.1
-	}
-];
 
 const urlOptions = {
 	"API_KEY": API_KEY,
@@ -32,7 +16,6 @@ const urlOptions = {
 	"page": 1,
 	"app_id": 570
 }
-
 
 var getMyBalance = {
   url: `https://bitskins.com/api/v1/get_account_balance/?api_key=${API_KEY}&code=${code}`
@@ -52,10 +35,7 @@ function setMyOrderNewPrice (order, myOrders) {
 	var price = parseFloat(order.price) + 0.01
 	console.log("updating order's price " + price)
 
-	// cancel my autoorder
 	cancelMyOrder(myOrders, true, price)
-	// create my autoorder
-
 }
 
 
