@@ -18,17 +18,29 @@ const urlOptions = {
 }
 
 var getMyBalance = {
-  url: `https://bitskins.com/api/v1/get_account_balance/?api_key=${API_KEY}&code=${code}`
+	url: `https://bitskins.com/api/v1/get_account_balance/?${encodeQueryData({
+		"api_key": 	API_KEY,
+		"code": 	code
+	})}`
 };
 
 var getMarketOrders = {
-	url: `https://bitskins.com/api/v1/get_market_buy_orders/?api_key=${urlOptions.API_KEY}&code=${urlOptions.code}&market_hash_name=${urlOptions.market_hash_name}&page=${urlOptions.page}&app_id=${urlOptions.app_id}`
+	url: `https://bitskins.com/api/v1/get_market_buy_orders/?${encodeQueryData({
+		"api_key": 				urlOptions.API_KEY,
+		"code": 				urlOptions.code,
+		"market_hash_name": 	urlOptions.market_hash_name,
+		"page": 				urlOptions.page,
+		"app_id": 				urlOptions.app_id,
+	})}`
 }
 
 
-
-console.log(getMarketOrders.url)
-
+function encodeQueryData(data) {
+   const ret = [];
+   for (let d in data)
+     ret.push(encodeURIComponent(d) + '=' + encodeURIComponent(data[d]));
+   return ret.join('&');
+}
 
 function setMyOrderNewPrice (order, myOrders) {
 
@@ -44,7 +56,13 @@ function cancelMyOrder (myOrders, _isUpdated , price) {
 	for (var i = 0; i < myOrders.length; i++) {
 		var order = myOrders[i];
 
-		var deleteURL = `https://bitskins.com/api/v1/cancel_buy_orders/?api_key=${urlOptions.API_KEY}&code=${urlOptions.code}&app_id=${urlOptions.app_id}&buy_order_ids=${order.buy_order_id}`;
+		// var deleteURL = `https://bitskins.com/api/v1/cancel_buy_orders/?api_key=${urlOptions.API_KEY}&code=${urlOptions.code}&app_id=${urlOptions.app_id}&buy_order_ids=${order.buy_order_id}`;
+		var deleteURL = `https://bitskins.com/api/v1/cancel_buy_orders/?${encodeQueryData({
+			"api_key": 				urlOptions.API_KEY,
+			"code": 				urlOptions.code,
+			"app_id": 				urlOptions.app_id,
+			"buy_order_ids": 		order.buy_order_id,
+		})}`;
 
 		request.post(deleteURL, function (error, response, body) {
 			if (!error) {
@@ -74,30 +92,37 @@ function createNewMyOrder (price, count, market_hash_name) {
 	var newOrderSetting = {
 		"price": 	price,
 		"name": 	market_hash_name,
-		"value": 	1,
+		"value": 	count,
 		"app_id": 	570 							//надо обработать...
 	}
 
-	for (var i = 0; i < count; i++) {
-		var updateURL = `https://bitskins.com/api/v1/create_buy_order/?api_key=${urlOptions.API_KEY}&code=${urlOptions.code}&app_id=${newOrderSetting.app_id}&name=${newOrderSetting.name}&price=${newOrderSetting.price}&quantity=${newOrderSetting.value}`;
 
-		request.post(updateURL, function (error, response, body) {
-			if (!error) {
-    			var respData = JSON.parse(body);
+	// var updateURL = `https://bitskins.com/api/v1/create_buy_order/?api_key=${urlOptions.API_KEY}&code=${urlOptions.code}&app_id=${newOrderSetting.app_id}&name=${newOrderSetting.name}&price=${newOrderSetting.price}&quantity=${newOrderSetting.value}`;
+	var updateURL = `https://bitskins.com/api/v1/create_buy_order/?${encodeQueryData({
+		"api_key": 				urlOptions.API_KEY,
+		"code": 				urlOptions.code,
+		"app_id": 				newOrderSetting.app_id,
+		"name": 				newOrderSetting.name,
+		"price": 				newOrderSetting.price,
+		"quantity": 			newOrderSetting.value,
+	})}`;
 
-    			if (respData.status == 'success') {
-    				var data = respData.data;
-    				console.log(`${data.orders[0].buy_order_id} added successfully!`)
-    				console.log("price of the product: ", data.orders[0].price)
-    			} else {
-    				console.log('##### Status: failed:', respData.data.error_message, "#####")
-    			}
-    		}
-		});
-	}
+	request.post(updateURL, function (error, response, body) {
+		if (!error) {
+			var respData = JSON.parse(body);
+
+			if (respData.status == 'success') {
+				var data = respData.data;
+				console.log(`${data.orders[0].buy_order_id} added successfully!`)
+				console.log("price of the product: ", data.orders[0].price)
+			} else {
+				console.log('##### Status: failed:', respData.data.error_message, "#####")
+			}
+		}
+	});
 }
 
-function callback(error, response, body) {
+function checkMyOrders(error, response, body) {
   if (!error) {
     var respData = JSON.parse(body);
 
@@ -162,22 +187,20 @@ function callback(error, response, body) {
 }
 
 
-request.post(getMarketOrders, callback);
+// request.post(getMarketOrders, checkMyOrders);
 
 
 
+let mainTimer = setTimeout(function tick() {
 
+	request.post(getMyBalance, function (error, response, body) {
+		if (!error) {
+			var respData = JSON.parse(body);
+			if (respData.status == 'success') {
+				console.log(`My balance is: ${respData.data.available_balance}$`)
+			}
+		}
+	})
 
-
-
-
-// var options = {
-//   url: 'https://bitskins.com/api/v1/get_market_buy_orders/',
-//   form: {
-//     'api_key': API_KEY,
-//     'names': 'Dark%20Artistry%20Cape',
-//     'app_id': '570',
-//     'PAGE': '1',
-//     'code': code
-//   }
-// };
+  mainTimer = setTimeout(tick, 60000); // (*)
+}, 10);
