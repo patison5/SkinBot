@@ -315,6 +315,56 @@ app.get('/start', function (req, res) {
 	res.redirect('/');
 })
 
+app.get('/getAll', function (req, res) {
+
+	var wasSent 	 = 0;
+	var wasDelivered = 0;
+	var data = {
+		status: "ok",
+		orders: []
+	}
+
+	for (var i = 0; i < MY_GAMES.length; i++) {
+
+		var getMyOrdersURL = `https://bitskins.com/api/v1/get_active_buy_orders/?${encodeQueryData({
+			"api_key": 				urlOptions.API_KEY,
+			"code": 				urlOptions.code,
+			"app_id": 				MY_GAMES[i],
+			"page": 				1,
+		})}`;
+
+		request.post(getMyOrdersURL, function (error, response, body) {
+			wasSent++;
+
+			if (!error) {
+
+				var respData = JSON.parse(body);
+
+				if (respData.status == 'success') {
+					respData.data.orders.forEach(element => {
+						element.app_id = respData.data.app_id;
+						data.orders.push(element)
+					});
+
+					wasDelivered++;
+
+					if ((wasDelivered == MY_GAMES.length) && (wasSent == MY_GAMES.length)) {
+						res.send(data)
+					} else if (wasSent == MY_GAMES.length) {
+						data.status = 'fail';
+						res.send(data)
+					}
+
+				} else {
+					console.log('\x1b[33m%s\x1b[0m', `##### Status: failed: ${ respData.data.error_message } ##### (tried to send all orders by url)`)
+				}
+			}
+		})
+	}
+
+	
+})
+
 
 app.post('/removeSingleOrder', function (req, res) {
 	const id 	 = req.body.id;

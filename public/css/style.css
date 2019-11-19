@@ -29,6 +29,7 @@ body {
 	background: #fff;
 	-webkit-background-size: cover;
 	background-size: cover;
+	background: #e4f0ff;
 }
 ol, ul, li { list-style: none; }
 * {
@@ -70,13 +71,11 @@ input { -webkit-appearance: none; }
 
 .wraper {
 	width: 960px;
-	height: 600px;
-	margin: 0 auto;
+	margin: 50px auto;
 	top: 50%;
 	position: relative;
 	margin-top: -300px;
 	display: block;
-	background: #fff;
 	overflow: hidden;
 }
 
@@ -84,6 +83,7 @@ input { -webkit-appearance: none; }
 .header {
 	display: block;
 	overflow: hidden;	
+	background: #fff;
 }
 
 .header-top {
@@ -136,6 +136,7 @@ input { -webkit-appearance: none; }
 	margin-top: 20px;
 	padding: 10px;
 	border: 1px dashed #4a76a8;
+	background: #fff;
 }
 
 .orders {
