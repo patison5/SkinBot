@@ -161,3 +161,11 @@ input { -webkit-appearance: none; }
 .orders tr {
 	width: 100%;
 }
+
+
+.orders tbody td:first-child {
+	border-left: 1px dashed #4a76a8;
+}
+.orders tbody td:last-child {
+	border-right: 1px dashed #4a76a8;
+}

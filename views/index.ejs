@@ -11,7 +11,7 @@
 	<div class="wraper">
 		<div class="header">
 			<div class="header-top">
-				<h1 class="header__title">Welcome to my Skin bot</h1>
+				<h1 class="header__title">WELCOME TO MY SKINBOT</h1>
 				<span class="my__balance">Balance: <%= balance %>$</span>
 			</div>
 
@@ -19,14 +19,11 @@
 				<ul class="main-menu">
 
 					<%if (isWorking == false) { %>
-						<li class="main-menu__element"><a href="/start">start</a></li>
+						<li class="main-menu__element"><a href="/start">START</a></li>
 					<% } else { %>
-						<li class="main-menu__element"><a href="/stop">stop</a></li>
+						<li class="main-menu__element"><a href="/stop">STOP</a></li>
 					<% } %>
 					
-					
-
-					<li class="main-menu__element"><a href="#">Balance</a></li>
 					<li class="main-menu__element"><a href="#">Orders</a></li>
 					<li class="main-menu__element"><a href="#">Create order</a></li>
 				</ul>
@@ -38,13 +35,14 @@
 			<table class="orders">
 				<thead>
 					<tr>
-						<td>id</td>
-						<td>market name</td>
-						<td>price</td>
-						<td>created</td>
-						<td>updated</td>
-						<td>place in queue</td>
-						<td>Buttons</td>
+						<td>ID</td>
+						<td>MARKET NAME</td>
+						<td>PRICE</td>
+						<td>CREATED</td>
+						<td>UPDATED</td>
+						<td>PLACE IN QUEUE</td>
+						<td>APP ID</td>
+						<td>ACTIONS</td>
 					</tr>
 				</thead>
 
@@ -60,7 +58,10 @@
 							<td><%= moment(item.created_at).format( 'MMM-DD-YYYY') %></td>
 							<td><%= moment(item.updated_at).format( 'MMM-DD-YYYY') %></td>
 							<td><%= item.place_in_queue %></td>
-							<td><a href="#" class="removeSingleOrder" data-id="<%= item.buy_order_id %>">удалить</a></td>
+							<td><%= item.app_id %></td>
+							<td><a href="#" class="removeSingleOrder" 
+								   data-id="<%= item.buy_order_id %>" 
+								   data-app_id="<%= item.app_id %>">удалить</a></td>
 						</tr>
 
 					<% });%>
@@ -72,13 +73,14 @@
 
 				<tfoot>
 					<tr>
-						<td>id</td>
-						<td>market name</td>
-						<td>price</td>
-						<td>created</td>
-						<td>updated</td>
-						<td>place in queue</td>
-						<td>Buttons</td>
+						<td>ID</td>
+						<td>MARKET NAME</td>
+						<td>PRICE</td>
+						<td>CREATED</td>
+						<td>UPDATED</td>
+						<td>PLACE IN QUEUE</td>
+						<td>APP ID</td>
+						<td>ACTIONS</td>
 					</tr>
 				</tfoot>
 			</table>

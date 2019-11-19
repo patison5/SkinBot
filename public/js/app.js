@@ -9,7 +9,8 @@ window.onload = function () {
 			$.ajax({
 				type: 'POST',
 				data: JSON.stringify({
-					"id": this.dataset.id
+					"id": 	  this.dataset.id
+					"app_id": this.dataset.app_id					
 				}),
 				contentType: 'application/json',
 				url: '/removeSingleOrder'

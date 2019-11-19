@@ -3,6 +3,7 @@ const totp 			= require('totp-generator');
 const express 		= require('express')
 const bodyParser 	= require("body-parser");
 const moment 		= require('moment');
+const cTable 		= require('console.table');
 
 const app = express() 
 
@@ -18,14 +19,21 @@ const CONFIG = require('./config')
 var API_KEY = CONFIG.API_KEY;
 var code 	= totp(CONFIG.SECRET_HASH);
 
-
+console.table('\x1b[33m', [
+	{
+		API_KEY: API_KEY,
+		CODE: code
+	}
+], '\x1b[0m')
 
 function updateCodeKey () {
 	code = totp(CONFIG.SECRET_HASH);
 	updateCodeKeyTimer = setTimeout(updateCodeKey, 30000);
+	console.log('\x1b[33m%s\x1b[0m', `UPDATING 2FA CODE: ${code}`)
+	urlOptions.code = code;
 }
 
-let updateCodeKeyTimer = setTimeout(updateCodeKey, 30);
+let updateCodeKeyTimer = setTimeout(updateCodeKey, 30000);
 
 
 const maxPrices = {
@@ -43,22 +51,18 @@ const urlOptions = {
 	"app_id": 570
 }
 
-var getMyBalance = {
-	url: `https://bitskins.com/api/v1/get_account_balance/?${encodeQueryData({
-		"api_key": 	API_KEY,
-		"code": 	code
-	})}`
-};
+var getMyBalance = `https://bitskins.com/api/v1/get_account_balance/?${encodeQueryData({
+	"api_key": 	API_KEY,
+	"code": 	code
+})}`;
 
-var getMarketOrders = {
-	url: `https://bitskins.com/api/v1/get_market_buy_orders/?${encodeQueryData({
-		"api_key": 				urlOptions.API_KEY,
-		"code": 				urlOptions.code,
-		"market_hash_name": 	urlOptions.market_hash_name,
-		"page": 				urlOptions.page,
-		"app_id": 				urlOptions.app_id,
-	})}`
-}
+var getMarketOrders =  `https://bitskins.com/api/v1/get_market_buy_orders/?${encodeQueryData({
+	"api_key": 				urlOptions.API_KEY,
+	"code": 				urlOptions.code,
+	"market_hash_name": 	urlOptions.market_hash_name,
+	"page": 				urlOptions.page,
+	"app_id": 				urlOptions.app_id,
+})}`;
 
 
 var myData = {
@@ -68,11 +72,15 @@ var myData = {
 
 var _isWorking = true;
 
+var ordersIDsList = [567337456]
+
 
 const MY_GAMES = [570, 730, 252490];
 
 
 function getAllMyOrders () {
+	myData.orders = [];
+
 	for (var i = 0; i < MY_GAMES.length; i++) {
 
 		var getMyOrdersURL = `https://bitskins.com/api/v1/get_active_buy_orders/?${encodeQueryData({
@@ -85,11 +93,14 @@ function getAllMyOrders () {
 		request.post(getMyOrdersURL, function (error, response, body) {
 
 			if (!error) {
+
 				var respData = JSON.parse(body);
 
-				myData.orders = respData.data.orders;
-
 				if (respData.status == 'success') {
+					respData.data.orders.forEach(element => {
+						element.app_id = respData.data.app_id;
+						myData.orders.push(element)
+					});
 
 					for (var j = 0; j < respData.data.orders.length; j++) {
 
@@ -103,7 +114,8 @@ function getAllMyOrders () {
 
 						request.post(getMarketOrders, checkMyOrders);
 					}
-
+				} else {
+					console.log('\x1b[33m%s\x1b[0m', `##### Status: failed: ${ respData.data.error_message } #####`)
 				}
 			}
 		})
@@ -119,11 +131,13 @@ function encodeQueryData(data) {
 
 function setMyOrderNewPrice (order, myOrders, app_id) {
 
+	console.log('\x1b[33m%s\x1b[0m', `SOMEONE IS TRYING TO FUCK US UP - TAKING THE NECESSARY MEASURES:`)
+
 	var price = parseFloat(order.price) + 0.01;
 
 	price = Math.ceil((price)*100)/100;
 
-	console.log(`new price of product: ${price}`)
+	console.log(`New price of product: ${price}`)
 
 	cancelMyOrders(myOrders, true, price, app_id)
 }
@@ -134,16 +148,12 @@ function cancelMyOrders (myOrders, _isUpdated , price, app_id) {
 	for (var i = 0; i < myOrders.length; i++) {
 		var order = myOrders[i];
 
-		console.log(order)
-
 		var deleteURL = `https://bitskins.com/api/v1/cancel_buy_orders/?${encodeQueryData({
 			"api_key": 				urlOptions.API_KEY,
 			"code": 				urlOptions.code,
 			"app_id": 				app_id,
 			"buy_order_ids": 		order.buy_order_id,
 		})}`;
-
-		console.log(deleteURL)
 
 		request.post(deleteURL, function (error, response, body) {
 			if (!error) {
@@ -161,6 +171,8 @@ function cancelMyOrders (myOrders, _isUpdated , price, app_id) {
     			} else {
     				console.log('\x1b[33m%s\x1b[0m', '##### Status: failed:', respData.data.error_message, "#####")
     			}
+    		} else {
+    			console.log('\x1b[33m%s\x1b[0m', '##### Status: failed:', error, "#####")
     		}
 		});
 
@@ -179,8 +191,6 @@ function createNewMyOrder (price, count, market_hash_name, app_id) {
 		"quantity": 			count,
 	})}`;
 
-	console.log(updateURL)
-
 	request.post(updateURL, function (error, response, body) {
 		if (!error) {
 			var respData = JSON.parse(body);
@@ -192,68 +202,78 @@ function createNewMyOrder (price, count, market_hash_name, app_id) {
 			} else {
 				console.log('\x1b[33m%s\x1b[0m', '##### Status: failed:', respData.data.error_message, "#####")
 			}
+		} else {
+			console.log('\x1b[33m%s\x1b[0m', '##### Status: failed:', error, "#####")
 		}
 	});
 }
 
 function checkMyOrders(error, response, body) {
-  if (!error) {
-    var respData = JSON.parse(body);
+	if (!error) {
+		var respData = JSON.parse(body);
 
-    if (respData.status == 'success') {
-    	var data = respData.data;
-    	var orders = data.orders;
+		if (respData.status == 'success') {
+			var data = respData.data;
+			var orders = data.orders;
 
-
-    	for (var i = 0; i < orders.length; i++) {
-    		var order = orders[i];
-    		console.log('\x1b[32m%s\x1b[0m', "name: ", order.market_hash_name, '\x1b[32m', "    price: ", '\x1b[0m', order.price,  '$\x1b[32m', "    is_mine: ", '\x1b[0m', order.is_mine);
-    	}
-    	console.log("")
+			// console.table(orders)
 
 
-    	var myOrders = [];
-    	for (var i = 0; i < orders.length; i++) {
-    		var order = orders[i];
-    		if (order.is_mine)
-    			myOrders.push(order)
-    	}
+			var myOrders = [];
+			for (var i = 0; i < orders.length; i++) {
+				var order = orders[i];
+				if (order.is_mine){
 
-    	if (orders[0].is_mine){
-    		console.log('выход по первому условию')
-    		return;
-    	}
+					ordersIDsList.forEach(ids => {
+
+						if (ids == order.buy_order_id){
+							myOrders.push(order)
+						}
+					});
+
+					
+				}
+			}
+
+			if (orders[0].is_mine){
+				console.log('\x1b[33m%s\x1b[0m', 'выход по первому условию')
+				return;
+			}
 
 
-    	if (orders[0].price < maxPrices[orders[0].market_hash_name]) {
-    		setMyOrderNewPrice(orders[0], myOrders, data.app_id) 
-    		return;
-    	} else {
+			if (orders[0].price < maxPrices[orders[0].market_hash_name]) {
+				setMyOrderNewPrice(orders[0], myOrders, data.app_id) 
+				return;
+			} else {
 
-    		for (var i = 1; i < orders.length; i++) {
-    			if ((orders[i].price >= maxPrices[orders[0].market_hash_name]) && (!orders[i].is_mine))
-    				continue;
+				for (var i = 1; i < orders.length; i++) {
+					if ((orders[i].price >= maxPrices[orders[0].market_hash_name]) && (!orders[i].is_mine))
+						continue;
 
-    			if (orders[i].is_mine)
-    				break;
+					if (orders[i].is_mine)
+						break;
 
-    			setMyOrderNewPrice(orders[i], myOrders, data.app_id)
-    			break;
-    		}
+					setMyOrderNewPrice(orders[i], myOrders, data.app_id)
+					break;
+				}
 
-    	}
-    }
-  }
+			}
+		}
+	} else {
+		console.log('\x1b[33m%s\x1b[0m', '##### Status: failed:', error, "#####")
+	}
 }
 
-
+let delay = 15000;
 function startTimer () {
+
+	// console.log("\n\n########## STARTING CHECKING ##########\n")
+
 	request.post(getMyBalance, function (error, response, body) {
 		if (!error) {
 			var respData = JSON.parse(body);
 			if (respData.status == 'success') {
-				console.log('\x1b[32m%s\x1b[0m', `My balance is: ${respData.data.available_balance}$`)
-
+				// console.log(`My balance is:`, '\x1b[32m', `${respData.data.available_balance}$`, '\x1b[0m')
 				myData.balance = respData.data.available_balance;
 			}
 		}
@@ -263,12 +283,12 @@ function startTimer () {
 
 	mainTimer = setTimeout(startTimer, delay);
 }
-
-let delay = 15000;
 let mainTimer = setTimeout(startTimer, 10);
 
 
 app.get('/', function (req, res) {
+
+	console.log(myData.orders)
 
 	res.render('index', {
 		data: 	 	myData.orders,
@@ -297,12 +317,13 @@ app.get('/start', function (req, res) {
 
 
 app.post('/removeSingleOrder', function (req, res) {
-	const id = req.body.id;
+	const id 	 = req.body.id;
+	const app_id = req.body.app_id;
 
 	var deleteURL = `https://bitskins.com/api/v1/cancel_buy_orders/?${encodeQueryData({
 		"api_key": 				urlOptions.API_KEY,
 		"code": 				urlOptions.code,
-		"app_id": 				urlOptions.app_id,
+		"app_id": 				app_id,
 		"buy_order_ids": 		id,
 	})}`;
 
