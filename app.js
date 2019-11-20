@@ -1,6 +1,7 @@
 const request 		= require('request');
 const totp 			= require('totp-generator');
 const express 		= require('express')
+const path 			= require('path')
 const bodyParser 	= require("body-parser");
 const moment 		= require('moment');
 const cTable 		= require('console.table');
@@ -15,6 +16,7 @@ app.set("view engine", "ejs");
 
 
 const CONFIG = require('./config')
+const routes = require('./routes')
 
 var API_KEY = CONFIG.API_KEY;
 var code 	= totp(CONFIG.SECRET_HASH);
@@ -268,88 +270,6 @@ app.get('/start', function (req, res) {
 	res.redirect('/');
 })
 
-app.get('/getBalance', function (req, res) {
-
-	var getMyBalance = `https://bitskins.com/api/v1/get_account_balance/?${encodeQueryData({
-		"api_key": 	API_KEY,
-		"code": 	totp(CONFIG.SECRET_HASH)
-	})}`;
-
-	request.post(getMyBalance, function (error, response, body) {
-		if (!error) {
-			var respData = JSON.parse(body);
-
-			if (respData.status == 'success') {
-				res.send({
-					status: true,
-					balance: respData.data.available_balance
-				})
-			} else {
-				res.send({
-					status: false,
-					balance: respData.data.error_message
-				})
-			}
-		} else {
-			res.send({
-				status: false,
-				balance: error
-			})
-		}
-	})
-})
-
-app.get('/getAll', function (req, res) {
-
-	var wasSent 	 = 0;
-	var wasDelivered = 0;
-	var data = {
-		status: false,
-		orders: []
-	}
-
-	for (var i = 0; i < MY_GAMES.length; i++) {
-
-		var getMyOrdersURL = `https://bitskins.com/api/v1/get_active_buy_orders/?${encodeQueryData({
-			"api_key": 				API_KEY,
-			"code": 				totp(CONFIG.SECRET_HASH),
-			"app_id": 				MY_GAMES[i],
-			"page": 				1,
-		})}`;
-
-		request.post(getMyOrdersURL, function (error, response, body) {
-			wasSent++;
-
-			if (!error) {
-
-				var respData = JSON.parse(body);
-
-				if (respData.status == 'success') {
-					respData.data.orders.forEach(element => {
-						element.app_id = respData.data.app_id;
-						data.orders.push(element)
-					});
-
-					wasDelivered++;
-
-					if ((wasDelivered == MY_GAMES.length) && (wasSent == MY_GAMES.length)) {
-						data.status = true;
-						res.send(data)
-					} else if (wasSent == MY_GAMES.length) {
-						data.status = false;
-						res.send(data)
-					}
-
-				} else {
-					console.log('\x1b[33m%s\x1b[0m', `##### Status: failed: ${ respData.data.error_message } ##### (tried to send all orders by url)`)
-				}
-			}
-		})
-	}
-
-	
-})
-
 
 app.post('/removeSingleOrder', function (req, res) {
 	const id 	 = req.body.id;
@@ -385,6 +305,11 @@ app.post('/removeSingleOrder', function (req, res) {
 		}
 	});
 })
+
+
+
+app.use('/api/balance', routes.balance)
+app.use('/api/orders/', routes.orders)
 
 app.listen(3000)
 console.log(`Starting server on localhost:${3000}`)

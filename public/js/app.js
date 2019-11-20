@@ -33,7 +33,7 @@ window.onload = function () {
 		$.ajax({
 			type: 'GET',
 			contentType: 'application/json',
-			url: '/getAll'
+			url: '/api/orders/'
 		}).done(function(data) {		
 
 			if (!data.status) {
@@ -44,8 +44,6 @@ window.onload = function () {
 				tbodyOrders.innerHTML = "";
 
 				var orders = data.orders;
-
-				console.log(orders)
 
 				for (var i = 0; i < orders.length; i++) {
 					var tr = document.createElement('tr')
@@ -79,7 +77,6 @@ window.onload = function () {
 
 					tbodyOrders.appendChild(tr)
 				}
-				console.log('data had been updated')
 			}
 		})
 	}
@@ -89,7 +86,7 @@ window.onload = function () {
 		$.ajax({
 			type: 'GET',
 			contentType: 'application/json',
-			url: '/getBalance'
+			url: '/api/balance/'
 		}).done(function (data) {
 			var balanceSpan = document.getElementById('balance-js')
 

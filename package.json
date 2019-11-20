@@ -18,6 +18,7 @@
     "nodemon": "^1.19.4",
     "notp": "^2.0.3",
     "onceler": "0.0.5",
+    "path": "^0.12.7",
     "request": "^2.88.0",
     "thirty-two": "^1.0.2",
     "totp-generator": "0.0.7"
