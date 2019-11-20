@@ -22,30 +22,32 @@ var code 	= totp(CONFIG.SECRET_HASH);
 console.table('\x1b[33m', [
 	{
 		API_KEY: API_KEY,
-		CODE: code
+		CODE: totp(CONFIG.SECRET_HASH)
 	}
 ], '\x1b[0m')
 
-function updateCodeKey () {
-	code = totp(CONFIG.SECRET_HASH);
-	updateCodeKeyTimer = setTimeout(updateCodeKey, 30000);
-	console.log('\x1b[33m%s\x1b[0m', `UPDATING 2FA CODE: ${code}`)
-	urlOptions.code = code;
-}
+// function updateCodeKey () {
+// 	code = totp(CONFIG.SECRET_HASH);
+// 	updateCodeKeyTimer = setTimeout(updateCodeKey, 1000);
+// 	console.log('\x1b[33m%s\x1b[0m', `UPDATING 2FA CODE: ${code}`)
+// 	totp(CONFIG.SECRET_HASH) = code;
+// }
 
-let updateCodeKeyTimer = setTimeout(updateCodeKey, 30000);
+// let updateCodeKeyTimer = setTimeout(updateCodeKey, 1000);
 
 
 const maxPrices = {
-	'Dark Artistry Cape': 15,
+	'Dark Artistry Cape': 110.01,
 	'Mace of Aeons': 2,
 	'Karambit | Autotronic (Well-Worn)': 2,
-	'Plate Carrier - Black': 41
+	'Plate Carrier - Black': 41,
+	'Bladeform Legacy': 18.5,
+	'Fiery Soul of the Slayer': 19
 }
 
 const urlOptions = {
 	"API_KEY": API_KEY,
-	"code": code,
+	"code": totp(CONFIG.SECRET_HASH),
 	"market_hash_name": 'Dark Artistry Cape',
 	"page": 1,
 	"app_id": 570
@@ -53,12 +55,12 @@ const urlOptions = {
 
 var getMyBalance = `https://bitskins.com/api/v1/get_account_balance/?${encodeQueryData({
 	"api_key": 	API_KEY,
-	"code": 	code
+	"code": 	totp(CONFIG.SECRET_HASH)
 })}`;
 
 var getMarketOrders =  `https://bitskins.com/api/v1/get_market_buy_orders/?${encodeQueryData({
 	"api_key": 				urlOptions.API_KEY,
-	"code": 				urlOptions.code,
+	"code": 				totp(CONFIG.SECRET_HASH),
 	"market_hash_name": 	urlOptions.market_hash_name,
 	"page": 				urlOptions.page,
 	"app_id": 				urlOptions.app_id,
@@ -72,8 +74,7 @@ var myData = {
 
 var _isWorking = true;
 
-var ordersIDsList = [567337456]
-
+var ordersIDsList = [568005607, 568008082, 568013131];
 
 const MY_GAMES = [570, 730, 252490];
 
@@ -85,7 +86,7 @@ function getAllMyOrders () {
 
 		var getMyOrdersURL = `https://bitskins.com/api/v1/get_active_buy_orders/?${encodeQueryData({
 			"api_key": 				urlOptions.API_KEY,
-			"code": 				urlOptions.code,
+			"code": 				totp(CONFIG.SECRET_HASH),
 			"app_id": 				MY_GAMES[i],
 			"page": 				1,
 		})}`;
@@ -106,7 +107,7 @@ function getAllMyOrders () {
 
 						var getMarketOrders = `https://bitskins.com/api/v1/get_market_buy_orders/?${encodeQueryData({
 								"api_key": 				urlOptions.API_KEY,
-								"code": 				urlOptions.code,
+								"code": 				totp(CONFIG.SECRET_HASH),
 								"market_hash_name": 	respData.data.orders[j].market_hash_name,
 								"app_id": 				respData.data.app_id,
 								"page": 				1,
@@ -137,8 +138,6 @@ function setMyOrderNewPrice (order, myOrders, app_id) {
 
 	price = Math.ceil((price)*100)/100;
 
-	console.log(`New price of product: ${price}`)
-
 	cancelMyOrders(myOrders, true, price, app_id)
 }
 
@@ -150,10 +149,21 @@ function cancelMyOrders (myOrders, _isUpdated , price, app_id) {
 
 		var deleteURL = `https://bitskins.com/api/v1/cancel_buy_orders/?${encodeQueryData({
 			"api_key": 				urlOptions.API_KEY,
-			"code": 				urlOptions.code,
+			"code": 				totp(CONFIG.SECRET_HASH),
 			"app_id": 				app_id,
 			"buy_order_ids": 		order.buy_order_id,
 		})}`;
+
+
+		for (var j = 0; j < ordersIDsList.length; j++) {
+			if (ordersIDsList[j] == order.buy_order_id){
+				console.log(`removingfrom dataset ${ordersIDsList[j]}`)
+				ordersIDsList.splice(j, 1);
+
+				break;
+			}	
+		}
+
 
 		request.post(deleteURL, function (error, response, body) {
 			if (!error) {
@@ -184,7 +194,7 @@ function createNewMyOrder (price, count, market_hash_name, app_id) {
 
 	var updateURL = `https://bitskins.com/api/v1/create_buy_order/?${encodeQueryData({
 		"api_key": 				urlOptions.API_KEY,
-		"code": 				urlOptions.code,
+		"code": 				totp(CONFIG.SECRET_HASH),
 		"app_id": 				app_id,
 		"name": 				market_hash_name,
 		"price": 				price,
@@ -198,6 +208,8 @@ function createNewMyOrder (price, count, market_hash_name, app_id) {
 			if (respData.status == 'success') {
 				var data = respData.data;
 				console.log('\x1b[36m%s\x1b[0m', `${data.orders[0].market_hash_name}  ${data.orders[0].buy_order_id} added successfully!`)
+
+				ordersIDsList.push(data.orders[0].buy_order_id)
 				console.log("price of the product: ", data.orders[0].price)
 			} else {
 				console.log('\x1b[33m%s\x1b[0m', '##### Status: failed:', respData.data.error_message, "#####")
@@ -230,13 +242,15 @@ function checkMyOrders(error, response, body) {
 							myOrders.push(order)
 						}
 					});
-
-					
 				}
 			}
 
+			if (myOrders.length == 0){
+				return;
+			}
+
 			if (orders[0].is_mine){
-				console.log('\x1b[33m%s\x1b[0m', 'выход по первому условию')
+				// console.log('\x1b[33m%s\x1b[0m', 'выход по первому условию')
 				return;
 			}
 
@@ -267,7 +281,7 @@ function checkMyOrders(error, response, body) {
 let delay = 15000;
 function startTimer () {
 
-	// console.log("\n\n########## STARTING CHECKING ##########\n")
+	// console.log("\n\n########## ...CHECKING... ##########\n")
 
 	request.post(getMyBalance, function (error, response, body) {
 		if (!error) {
@@ -288,7 +302,7 @@ let mainTimer = setTimeout(startTimer, 10);
 
 app.get('/', function (req, res) {
 
-	console.log(myData.orders)
+	// console.log(myData.orders)
 
 	res.render('index', {
 		data: 	 	myData.orders,
@@ -328,7 +342,7 @@ app.get('/getAll', function (req, res) {
 
 		var getMyOrdersURL = `https://bitskins.com/api/v1/get_active_buy_orders/?${encodeQueryData({
 			"api_key": 				urlOptions.API_KEY,
-			"code": 				urlOptions.code,
+			"code": 				totp(CONFIG.SECRET_HASH),
 			"app_id": 				MY_GAMES[i],
 			"page": 				1,
 		})}`;
@@ -372,7 +386,7 @@ app.post('/removeSingleOrder', function (req, res) {
 
 	var deleteURL = `https://bitskins.com/api/v1/cancel_buy_orders/?${encodeQueryData({
 		"api_key": 				urlOptions.API_KEY,
-		"code": 				urlOptions.code,
+		"code": 				totp(CONFIG.SECRET_HASH),
 		"app_id": 				app_id,
 		"buy_order_ids": 		id,
 	})}`;
