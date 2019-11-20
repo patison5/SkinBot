@@ -20,7 +20,13 @@ $ npm install
 ```
 
 
-To start server
+Start server in development mode
 ```bash
-$ node app.js
+$ npm run dev
+```
+
+
+Start server in production mode
+```bash
+$ npm run prod
 ```
