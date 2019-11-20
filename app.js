@@ -40,6 +40,9 @@ var _isWorking = true;
 
 var ordersIDsList = [568005607, 568008082, 568013131];
 
+console.table('\x1b[33m', [CONFIG], '\x1b[0m')
+
+
 function getAllMyOrders () {
 
 	for (var i = 0; i < MY_GAMES.length; i++) {
@@ -233,7 +236,6 @@ function checkMyOrders(error, response, body) {
 
 let delay = 15000;
 function startTimer () {
-
 	getAllMyOrders();
 
 	mainTimer = setTimeout(startTimer, delay);
