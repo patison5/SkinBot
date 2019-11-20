@@ -1,3 +1,4 @@
+// general
 const request 		= require('request');
 const totp 			= require('totp-generator');
 const express 		= require('express')
@@ -6,8 +7,14 @@ const bodyParser 	= require("body-parser");
 const moment 		= require('moment');
 const cTable 		= require('console.table');
 
+// custom
+const CONFIG 		= require('./config')
+const routes 		= require('./routes')
+
 const app = express() 
 
+
+// settings
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -15,18 +22,10 @@ app.use(bodyParser.json());
 app.set("view engine", "ejs");
 
 
-const CONFIG = require('./config')
-const routes = require('./routes')
+// main constants
+const API_KEY 	= CONFIG.API_KEY;
+const MY_GAMES  = CONFIG.MY_GAMES;
 
-var API_KEY = CONFIG.API_KEY;
-var code 	= totp(CONFIG.SECRET_HASH);
-
-console.table('\x1b[33m', [
-	{
-		API_KEY: API_KEY,
-		CODE: totp(CONFIG.SECRET_HASH)
-	}
-], '\x1b[0m')
 
 const maxPrices = {
 	'Dark Artistry Cape': 110.01,
@@ -40,9 +39,6 @@ const maxPrices = {
 var _isWorking = true;
 
 var ordersIDsList = [568005607, 568008082, 568013131];
-
-const MY_GAMES = [570, 730, 252490];
-
 
 function getAllMyOrders () {
 
@@ -245,6 +241,11 @@ function startTimer () {
 let mainTimer = setTimeout(startTimer, 10);
 
 
+
+
+
+// ##### CONTROL ROUTES #####
+
 app.get('/', function (req, res) {
 
 	res.render('index', {
@@ -311,5 +312,8 @@ app.post('/removeSingleOrder', function (req, res) {
 app.use('/api/balance', routes.balance)
 app.use('/api/orders/', routes.orders)
 
+
+
+// ##### STARTING SERVER #####
 app.listen(3000)
 console.log(`Starting server on localhost:${3000}`)

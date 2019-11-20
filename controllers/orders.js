@@ -1,6 +1,5 @@
-var Orders = require('../models/orders');
-
-const MY_GAMES = [570, 730, 252490];
+var Orders   = require('../models/orders');
+const MY_GAMES = require('../config').MY_GAMES
 
 exports.getAllActiveOrders = (req, res) => {
 	var wasSent 	 = 0;
