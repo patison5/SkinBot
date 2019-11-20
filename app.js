@@ -26,16 +26,6 @@ console.table('\x1b[33m', [
 	}
 ], '\x1b[0m')
 
-// function updateCodeKey () {
-// 	code = totp(CONFIG.SECRET_HASH);
-// 	updateCodeKeyTimer = setTimeout(updateCodeKey, 1000);
-// 	console.log('\x1b[33m%s\x1b[0m', `UPDATING 2FA CODE: ${code}`)
-// 	totp(CONFIG.SECRET_HASH) = code;
-// }
-
-// let updateCodeKeyTimer = setTimeout(updateCodeKey, 1000);
-
-
 const maxPrices = {
 	'Dark Artistry Cape': 110.01,
 	'Mace of Aeons': 2,
@@ -45,33 +35,6 @@ const maxPrices = {
 	'Fiery Soul of the Slayer': 19
 }
 
-const urlOptions = {
-	"API_KEY": API_KEY,
-	"code": totp(CONFIG.SECRET_HASH),
-	"market_hash_name": 'Dark Artistry Cape',
-	"page": 1,
-	"app_id": 570
-}
-
-var getMyBalance = `https://bitskins.com/api/v1/get_account_balance/?${encodeQueryData({
-	"api_key": 	API_KEY,
-	"code": 	totp(CONFIG.SECRET_HASH)
-})}`;
-
-var getMarketOrders =  `https://bitskins.com/api/v1/get_market_buy_orders/?${encodeQueryData({
-	"api_key": 				urlOptions.API_KEY,
-	"code": 				totp(CONFIG.SECRET_HASH),
-	"market_hash_name": 	urlOptions.market_hash_name,
-	"page": 				urlOptions.page,
-	"app_id": 				urlOptions.app_id,
-})}`;
-
-
-var myData = {
-	orders: [],
-	balance: 0,
-};
-
 var _isWorking = true;
 
 var ordersIDsList = [568005607, 568008082, 568013131];
@@ -80,12 +43,11 @@ const MY_GAMES = [570, 730, 252490];
 
 
 function getAllMyOrders () {
-	myData.orders = [];
 
 	for (var i = 0; i < MY_GAMES.length; i++) {
 
 		var getMyOrdersURL = `https://bitskins.com/api/v1/get_active_buy_orders/?${encodeQueryData({
-			"api_key": 				urlOptions.API_KEY,
+			"api_key": 				API_KEY,
 			"code": 				totp(CONFIG.SECRET_HASH),
 			"app_id": 				MY_GAMES[i],
 			"page": 				1,
@@ -98,15 +60,11 @@ function getAllMyOrders () {
 				var respData = JSON.parse(body);
 
 				if (respData.status == 'success') {
-					respData.data.orders.forEach(element => {
-						element.app_id = respData.data.app_id;
-						myData.orders.push(element)
-					});
 
 					for (var j = 0; j < respData.data.orders.length; j++) {
 
 						var getMarketOrders = `https://bitskins.com/api/v1/get_market_buy_orders/?${encodeQueryData({
-								"api_key": 				urlOptions.API_KEY,
+								"api_key": 				API_KEY,
 								"code": 				totp(CONFIG.SECRET_HASH),
 								"market_hash_name": 	respData.data.orders[j].market_hash_name,
 								"app_id": 				respData.data.app_id,
@@ -148,7 +106,7 @@ function cancelMyOrders (myOrders, _isUpdated , price, app_id) {
 		var order = myOrders[i];
 
 		var deleteURL = `https://bitskins.com/api/v1/cancel_buy_orders/?${encodeQueryData({
-			"api_key": 				urlOptions.API_KEY,
+			"api_key": 				API_KEY,
 			"code": 				totp(CONFIG.SECRET_HASH),
 			"app_id": 				app_id,
 			"buy_order_ids": 		order.buy_order_id,
@@ -193,7 +151,7 @@ function cancelMyOrders (myOrders, _isUpdated , price, app_id) {
 function createNewMyOrder (price, count, market_hash_name, app_id) {
 
 	var updateURL = `https://bitskins.com/api/v1/create_buy_order/?${encodeQueryData({
-		"api_key": 				urlOptions.API_KEY,
+		"api_key": 				API_KEY,
 		"code": 				totp(CONFIG.SECRET_HASH),
 		"app_id": 				app_id,
 		"name": 				market_hash_name,
@@ -227,9 +185,6 @@ function checkMyOrders(error, response, body) {
 		if (respData.status == 'success') {
 			var data = respData.data;
 			var orders = data.orders;
-
-			// console.table(orders)
-
 
 			var myOrders = [];
 			for (var i = 0; i < orders.length; i++) {
@@ -281,18 +236,6 @@ function checkMyOrders(error, response, body) {
 let delay = 15000;
 function startTimer () {
 
-	// console.log("\n\n########## ...CHECKING... ##########\n")
-
-	request.post(getMyBalance, function (error, response, body) {
-		if (!error) {
-			var respData = JSON.parse(body);
-			if (respData.status == 'success') {
-				// console.log(`My balance is:`, '\x1b[32m', `${respData.data.available_balance}$`, '\x1b[0m')
-				myData.balance = respData.data.available_balance;
-			}
-		}
-	})
-
 	getAllMyOrders();
 
 	mainTimer = setTimeout(startTimer, delay);
@@ -302,11 +245,7 @@ let mainTimer = setTimeout(startTimer, 10);
 
 app.get('/', function (req, res) {
 
-	// console.log(myData.orders)
-
 	res.render('index', {
-		data: 	 	myData.orders,
-		balance: 	myData.balance,
 		isWorking: _isWorking,
 		moment: 	moment
 	})
@@ -329,19 +268,50 @@ app.get('/start', function (req, res) {
 	res.redirect('/');
 })
 
+app.get('/getBalance', function (req, res) {
+
+	var getMyBalance = `https://bitskins.com/api/v1/get_account_balance/?${encodeQueryData({
+		"api_key": 	API_KEY,
+		"code": 	totp(CONFIG.SECRET_HASH)
+	})}`;
+
+	request.post(getMyBalance, function (error, response, body) {
+		if (!error) {
+			var respData = JSON.parse(body);
+
+			if (respData.status == 'success') {
+				res.send({
+					status: true,
+					balance: respData.data.available_balance
+				})
+			} else {
+				res.send({
+					status: false,
+					balance: respData.data.error_message
+				})
+			}
+		} else {
+			res.send({
+				status: false,
+				balance: error
+			})
+		}
+	})
+})
+
 app.get('/getAll', function (req, res) {
 
 	var wasSent 	 = 0;
 	var wasDelivered = 0;
 	var data = {
-		status: "ok",
+		status: false,
 		orders: []
 	}
 
 	for (var i = 0; i < MY_GAMES.length; i++) {
 
 		var getMyOrdersURL = `https://bitskins.com/api/v1/get_active_buy_orders/?${encodeQueryData({
-			"api_key": 				urlOptions.API_KEY,
+			"api_key": 				API_KEY,
 			"code": 				totp(CONFIG.SECRET_HASH),
 			"app_id": 				MY_GAMES[i],
 			"page": 				1,
@@ -363,9 +333,10 @@ app.get('/getAll', function (req, res) {
 					wasDelivered++;
 
 					if ((wasDelivered == MY_GAMES.length) && (wasSent == MY_GAMES.length)) {
+						data.status = true;
 						res.send(data)
 					} else if (wasSent == MY_GAMES.length) {
-						data.status = 'fail';
+						data.status = false;
 						res.send(data)
 					}
 
@@ -385,7 +356,7 @@ app.post('/removeSingleOrder', function (req, res) {
 	const app_id = req.body.app_id;
 
 	var deleteURL = `https://bitskins.com/api/v1/cancel_buy_orders/?${encodeQueryData({
-		"api_key": 				urlOptions.API_KEY,
+		"api_key": 				API_KEY,
 		"code": 				totp(CONFIG.SECRET_HASH),
 		"app_id": 				app_id,
 		"buy_order_ids": 		id,

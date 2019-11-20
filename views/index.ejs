@@ -14,7 +14,7 @@
 				<h1 class="header__title">WELCOME TO MY 
 					<span style="font-size: 15px; font-weight: bold;">SKIN<b style="color: #4a76a8;">BOT</b></span>
 				</h1>
-				<span class="my__balance">Balance: <b><%= balance %>$</b></span>
+				<span class="my__balance">Balance: <b id="balance-js">$</b></span>
 			</div>
 
 			<div class="header__menu">
@@ -40,46 +40,19 @@
 						<td>ID</td>
 						<td>MARKET NAME</td>
 						<td>PRICE</td>
-						<td>CREATED</td>
-						<td>UPDATED</td>
 						<td>PLACE IN QUEUE</td>
 						<td>APP ID</td>
 						<td>ACTIONS</td>
 					</tr>
 				</thead>
 
-				<tbody>
-
-					<!-- карточка товара -->
-					<% data.forEach(function (item) { %>
-
-						<tr id="<%= item.buy_order_id %>">
-							<td><%= item.buy_order_id %></td>
-							<td><%= item.market_hash_name %></td>
-							<td><%= item.price %></td>
-							<td><%= moment(item.created_at).format( 'MMM-DD-YYYY') %></td>
-							<td><%= moment(item.updated_at).format( 'MMM-DD-YYYY') %></td>
-							<td><%= item.place_in_queue %></td>
-							<td><%= item.app_id %></td>
-							<td><a href="#" class="removeSingleOrder" 
-								   data-id="<%= item.buy_order_id %>" 
-								   data-app_id="<%= item.app_id %>">удалить</a></td>
-						</tr>
-
-					<% });%>
-					<!-- карточка товара -->
-
-
-					
-				</tbody>
+				<tbody id="orders__tbody-js"></tbody>
 
 				<tfoot>
 					<tr>
 						<td>ID</td>
 						<td>MARKET NAME</td>
 						<td>PRICE</td>
-						<td>CREATED</td>
-						<td>UPDATED</td>
 						<td>PLACE IN QUEUE</td>
 						<td>APP ID</td>
 						<td>ACTIONS</td>
