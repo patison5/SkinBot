@@ -39,12 +39,14 @@ const maxPrices = {
 	'Fiery Soul of the Slayer': 19
 }
 
+var _isCreating = true;
 var _isWorking = true;
 var _isOrderUpdated = {
 	570: true,
 	730: true,
 	252490: true,
 };
+
 
 var ordersIDsList = [568005607, 568008082, 568013131];
 
@@ -72,9 +74,15 @@ function getAllMyOrders () {
 
 					// для красоты даты обновления
 					if ((_isOrderUpdated[respData.data.app_id]) && (respData.data.orders.length != 0)) {	
-						respData.data.orders.forEach(order => {
-							order.updated_at = getCurrentTime();
-						});
+
+						// для первоначальной отрисовки даты...
+						if (_isCreating) {
+							respData.data.orders.forEach(order => {
+								order.updated_at = getCurrentTime();
+							});
+							_isCreating = false;
+						}
+							
 
 						console.table('\x1b[33m', respData.data.orders, '\x1b[0m')
 						_isOrderUpdated[respData.data.app_id] = false;
@@ -184,7 +192,7 @@ function createNewMyOrder (price, count, market_hash_name, app_id) {
 
 			if (respData.status == 'success') {
 				var data = respData.data;
-					data.updated_at = getCurrentTime();
+					data.orders[0].updated_at = getCurrentTime();
 					_isOrderUpdated[respData.data.app_id] = true;
 
 				console.log('\x1b[36m%s\x1b[0m', `${data.orders[0].market_hash_name}  ${data.orders[0].buy_order_id} added successfully!`)
