@@ -1,17 +1,20 @@
 // general
-const request 		= require('request');
-const totp 			= require('totp-generator');
-const express 		= require('express')
-const path 			= require('path')
-const bodyParser 	= require("body-parser");
-const moment 		= require('moment');
-const cTable 		= require('console.table');
+const request 			= require('request');
+const totp 				= require('totp-generator');
+const express 			= require('express')
+const path 				= require('path')
+const bodyParser 		= require("body-parser");
+const moment 			= require('moment');
+const cTable 			= require('console.table');
+const getCurrentTime	= require('./plugins').getCurrentTime;
+
 
 // custom
 const CONFIG 		= require('./config')
 const routes 		= require('./routes')
 
 const app = express() 
+
 
 
 // settings
@@ -37,6 +40,11 @@ const maxPrices = {
 }
 
 var _isWorking = true;
+var _isOrderUpdated = {
+	570: true,
+	730: true,
+	252490: true,
+};
 
 var ordersIDsList = [568005607, 568008082, 568013131];
 
@@ -61,6 +69,16 @@ function getAllMyOrders () {
 				var respData = JSON.parse(body);
 
 				if (respData.status == 'success') {
+
+					// для красоты даты обновления
+					if ((_isOrderUpdated[respData.data.app_id]) && (respData.data.orders.length != 0)) {	
+						respData.data.orders.forEach(order => {
+							order.updated_at = getCurrentTime();
+						});
+
+						console.table('\x1b[33m', respData.data.orders, '\x1b[0m')
+						_isOrderUpdated[respData.data.app_id] = false;
+					}
 
 					for (var j = 0; j < respData.data.orders.length; j++) {
 
@@ -166,6 +184,9 @@ function createNewMyOrder (price, count, market_hash_name, app_id) {
 
 			if (respData.status == 'success') {
 				var data = respData.data;
+					data.updated_at = getCurrentTime();
+					_isOrderUpdated[respData.data.app_id] = true;
+
 				console.log('\x1b[36m%s\x1b[0m', `${data.orders[0].market_hash_name}  ${data.orders[0].buy_order_id} added successfully!`)
 
 				ordersIDsList.push(data.orders[0].buy_order_id)

@@ -1,5 +1,6 @@
-var Orders   = require('../models/orders');
-const MY_GAMES = require('../config').MY_GAMES
+var Orders   			= require('../models/orders');
+const MY_GAMES 			= require('../config').MY_GAMES;
+const getCurrentTime	= require('../plugins').getCurrentTime;
 
 exports.getAllActiveOrders = (req, res) => {
 	var wasSent 	 = 0;
@@ -23,6 +24,7 @@ exports.getAllActiveOrders = (req, res) => {
 				if (respData.status == 'success') {
 					respData.data.orders.forEach(element => {
 						element.app_id = respData.data.app_id;
+						element.last_updated = getCurrentTime();
 						data.orders.push(element)
 					});
 

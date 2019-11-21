@@ -48,6 +48,8 @@ window.onload = function () {
 				for (var i = 0; i < orders.length; i++) {
 					var tr = document.createElement('tr')
 
+					console.log(orders[i].updated_at)
+
 					tr.setAttribute('id', orders[i].buy_order_id)
 
 					var tdID = document.createElement('td')
@@ -65,6 +67,9 @@ window.onload = function () {
 					var tdAppId = document.createElement('td')
 						tdAppId.innerHTML = orders[i].app_id;
 
+					var tdLastUpdated = document.createElement('td')
+						tdLastUpdated.innerHTML = orders[i].last_updated;
+
 					var tdActions = document.createElement('td')
 						tdActions.innerHTML = `<a href="#" class="removeSingleOrder" data-id="${orders[i].buy_order_id}" data-app_id="${orders[i].app_id}">удалить</a></td>`;			
 
@@ -73,6 +78,7 @@ window.onload = function () {
 					tr.appendChild(tdPrice)
 					tr.appendChild(tdPlaceInQueue)
 					tr.appendChild(tdAppId)
+					tr.appendChild(tdLastUpdated)
 					tr.appendChild(tdActions)
 
 					tbodyOrders.appendChild(tr)
