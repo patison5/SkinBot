@@ -8,6 +8,8 @@ const moment 			= require('moment');
 const cTable 			= require('console.table');
 const getCurrentTime	= require('./plugins').getCurrentTime;
 
+const { startVKBot }	= require('./vk');
+
 
 const easyvk = require('easyvk')
 
@@ -30,7 +32,7 @@ app.set("view engine", "ejs");
 // main constants
 const API_KEY 	= CONFIG.API_KEY;
 const MY_GAMES  = CONFIG.MY_GAMES;
-const VK_TOKEN 	= "1823f6aea985edc620f600267473d1ae8277f69418f2c479dc54104fb608eb0d76fd4e88b8b3b2b694828";
+const VK_TOKEN 	= CONFIG.VK_TOKEN;
 
 
 const maxPrices = {
@@ -128,7 +130,7 @@ function getAllMyOrders () {
 								"page": 				1,
 						})}`;
 
-						request.post(getMarketOrders, checkMyOrders);
+						// request.post(getMarketOrders, checkMyOrders);
 					}
 				} else {
 					console.log('\x1b[33m%s\x1b[0m', `##### Status: failed: ${ respData.data.error_message } #####`)
@@ -136,6 +138,41 @@ function getAllMyOrders () {
 			}
 		})
 	}
+}
+
+function addAllMyOrdersToMonitoringList () {
+	ordersIDsList = [];
+
+	for (var i = 0; i < MY_GAMES.length; i++) {
+
+		var getMyOrdersURL = `https://bitskins.com/api/v1/get_active_buy_orders/?${encodeQueryData({
+			"api_key": 				API_KEY,
+			"code": 				totp(CONFIG.SECRET_HASH),
+			"app_id": 				MY_GAMES[i],
+			"page": 				1,
+		})}`;
+
+
+		request.post(getMyOrdersURL, function (error, response, body) {
+			if (!error) {
+				var respData = JSON.parse(body);
+				if (respData.status == 'success') {
+					for (var j = 0; j < respData.data.orders.length; j++) {
+						ordersIDsList.push(respData.data.orders[j].buy_order_id)
+						console.log('\x1b[33m%s\x1b[0m', `${respData.data.orders[j].market_hash_name}`, '\x1b[32m', `[${respData.data.orders[j].buy_order_id}]`, '\x1b[0m', ` added to monitoring list.`)
+					}
+				} else {
+					console.log('\x1b[33m%s\x1b[0m', `##### Status: failed: ${ respData.data.error_message } #####`)
+				}
+			}
+		})
+	}
+}
+
+function deleteAllMyOrdersFromMonitoringList () {
+	ordersIDsList = [];
+
+	console.log('\x1b[33m%s\x1b[0m', `Server removed all orders from monitoring list`, ordersIDsList)
 }
 
 function encodeQueryData(data) {
@@ -436,3 +473,55 @@ app.use('/api/orders/', routes.orders)
 // ##### STARTING SERVER #####
 app.listen(3000)
 console.log(`Starting server on localhost:${3000}`)
+
+startVKBot((res) => {
+	switch (res) {
+		case "start":
+			console.log('\x1b[32m%s\x1b[0m', 'server is starting ckecking')
+			mainTimer = mainTimer = setTimeout(startTimer, 10);
+			_isWorking = true;
+
+			sendVkMessage(`Бот проверок запущен`, 170877706)
+			sendVkMessage(`Бот проверок запущен`, 74331800)
+			break;
+
+		case "stop":
+			console.log('\x1b[32m%s\x1b[0m', 'server is stoping checking')
+			clearTimeout(mainTimer);
+			_isWorking = false;
+
+			sendVkMessage(`Бот проверок остановлен`, 170877706)
+			sendVkMessage(`Бот проверок остановлен`, 74331800)
+			break;
+
+		case "all_active":
+			addAllMyOrdersToMonitoringList();
+
+			sendVkMessage(`Все заказы успешно добавлены в список мониторинга`, 170877706)
+			sendVkMessage(`Все заказы успешно добавлены в список мониторинга`, 74331800)
+			console.log('server is additing all orders to monitoring list')
+			break;
+
+		case "no_active":
+			deleteAllMyOrdersFromMonitoringList();
+
+			sendVkMessage(`Все заказы успешно удалены из списка мониторинга`, 170877706)
+			sendVkMessage(`Все заказы успешно удалены из списка мониторинга`, 74331800)
+			break;
+
+		default:
+			console.log("no command found...")
+	}
+})
+console.log(`Starting VK bot`)
+
+
+
+
+module.exports = {
+    myfunc: myfunc
+};
+
+function myfunc(callback){    
+    callback(err,reply);    
+};

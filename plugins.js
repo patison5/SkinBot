@@ -23,3 +23,8 @@ exports.getCurrentTime = () => {
 
 	return `${date.toJSON().slice(0, 10).replace(/[-T]/g, '/')} ${date.getHours()}:${minutes}:${seconds}`;
 }
+
+
+exports.startChecking = () => {
+	console.log('server is starting ckecking')
+}

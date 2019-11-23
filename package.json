@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon --watch app.js",
-    "vk": "node vk.js",
+    "vk": "nodemon --watch vk.js",
     "prod": "node app.js"
   },
   "author": "",
