@@ -48,8 +48,6 @@ window.onload = function () {
 				for (var i = 0; i < orders.length; i++) {
 					var tr = document.createElement('tr')
 
-					console.log(orders[i].updated_at)
-
 					tr.setAttribute('id', orders[i].buy_order_id)
 
 					var tdID = document.createElement('td')
@@ -67,6 +65,12 @@ window.onload = function () {
 					var tdAppId = document.createElement('td')
 						tdAppId.innerHTML = orders[i].app_id;
 
+					var addToActiveList = document.createElement('td')
+					var btn = document.createElement('span');
+						btn.setAttribute('data-id', orders[i].buy_order_id)
+						btn.innerHTML = "отслеживать";
+					addToActiveList.appendChild(btn)
+
 					var tdLastUpdated = document.createElement('td')
 						tdLastUpdated.innerHTML = orders[i].last_updated;
 
@@ -79,9 +83,30 @@ window.onload = function () {
 					tr.appendChild(tdPlaceInQueue)
 					tr.appendChild(tdAppId)
 					tr.appendChild(tdLastUpdated)
+					tr.appendChild(addToActiveList)
 					tr.appendChild(tdActions)
 
 					tbodyOrders.appendChild(tr)
+
+
+					btn.addEventListener('click', function (e) {
+						$.ajax({
+							type: 'POST',
+							data: JSON.stringify({
+								"id": 	  this.dataset.id,			
+							}),
+							contentType: 'application/json',
+							url: '/addOrdersToOrdersIDsList'
+						}).done(function(data) {		
+							console.log(data)
+
+							if (!data.ok) {
+
+							} else {
+								
+							}
+						})
+					})
 				}
 			}
 		})
@@ -104,7 +129,7 @@ window.onload = function () {
 		updateTable();
 		getBalance();
 
-		updateDataSyncTimer = setTimeout(updateDataSync, 5000)
+		updateDataSyncTimer = setTimeout(updateDataSync, 30000)
 	}
 
 	let updateDataSyncTimer = setTimeout(updateDataSync, 0);

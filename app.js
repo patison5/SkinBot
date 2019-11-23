@@ -9,12 +9,14 @@ const cTable 			= require('console.table');
 const getCurrentTime	= require('./plugins').getCurrentTime;
 
 
+const easyvk = require('easyvk')
+
+
 // custom
 const CONFIG 		= require('./config')
 const routes 		= require('./routes')
 
 const app = express() 
-
 
 
 // settings
@@ -28,15 +30,29 @@ app.set("view engine", "ejs");
 // main constants
 const API_KEY 	= CONFIG.API_KEY;
 const MY_GAMES  = CONFIG.MY_GAMES;
+const VK_TOKEN 	= "1823f6aea985edc620f600267473d1ae8277f69418f2c479dc54104fb608eb0d76fd4e88b8b3b2b694828";
 
 
 const maxPrices = {
-	'Dark Artistry Cape': 110.01,
+	'Dark Artistry Cape': 107.01,
 	'Mace of Aeons': 2,
 	'Karambit | Autotronic (Well-Worn)': 2,
 	'Plate Carrier - Black': 41,
 	'Bladeform Legacy': 18.5,
-	'Fiery Soul of the Slayer': 19
+	'Fiery Soul of the Slayer': 19,
+	'Manifold Paradox': 18.91,
+
+	'Rotten Stache': 102.6,
+	'Exalted Manifold Paradox': 21.3,
+	'Big Grin': 128,
+	'Tempered Mask': 40,
+	'Plate Carrier - Black': 56,
+	'Glowing Skull': 23.5,
+	'Alien Red': 23,
+	
+	'AK-47 | Neon Revolution (Field-Tested)': 15.5,
+	'M4A4 | Neo-Noir (Field-Tested)': 16,
+	'StatTrak™ AK-47 | Redline (Field-Tested)': 25,
 }
 
 var _isCreating = true;
@@ -48,9 +64,23 @@ var _isOrderUpdated = {
 };
 
 
-var ordersIDsList = [568005607, 568008082, 568013131];
+var ordersIDsList = [];
 
 console.table('\x1b[33m', [CONFIG], '\x1b[0m')
+
+
+function sendVkMessage (message, user_ids) {
+	easyvk({
+	  access_token: VK_TOKEN
+	}).then(vk => {
+	  	// console.log(vk.session.group_id);
+		vk.call("messages.send", {
+			user_id: user_ids,
+	  		message: message
+		})
+	}).catch(console.error)
+}
+
 
 
 function getAllMyOrders () {
@@ -119,6 +149,10 @@ function setMyOrderNewPrice (order, myOrders, app_id) {
 
 	console.log('\x1b[33m%s\x1b[0m', `SOMEONE IS TRYING TO FUCK US UP - TAKING THE NECESSARY MEASURES:`)
 
+	//для отправки сообщения с сервера
+	sendVkMessage('КТО-ТО ПЫТАЕТСЯ НАС НАЕБАТЬ! ПРЕДПРИНИМАЕМ МЕРЫ!', 170877706)
+	sendVkMessage('КТО-ТО ПЫТАЕТСЯ НАС НАЕБАТЬ! ПРЕДПРИНИМАЕМ МЕРЫ!', 74331800)
+
 	var price = parseFloat(order.price) + 0.01;
 
 	price = Math.ceil((price)*100)/100;
@@ -158,6 +192,9 @@ function cancelMyOrders (myOrders, _isUpdated , price, app_id) {
     				var data = respData.data;
     				console.log('\x1b[36m%s\x1b[0m', `${data.buy_order_ids} removed successfully!`)
 
+					sendVkMessage(`${data.buy_order_ids} был удален!`, 170877706)
+					sendVkMessage(`${data.buy_order_ids} был удален!`, 74331800)
+
 
     				// не забыть испарвить вероятность слияние массивов.. проверить работу кол-бэка и создание нового ордера
     				if ((_isUpdated && (myOrders.length != 0)))
@@ -195,10 +232,19 @@ function createNewMyOrder (price, count, market_hash_name, app_id) {
 					data.orders[0].updated_at = getCurrentTime();
 					_isOrderUpdated[respData.data.app_id] = true;
 
+				console.table('\x1b[33m', `Update time: ${getCurrentTime()}`, '\x1b[0m')
+				
+				sendVkMessage(`Дата изменения: ${getCurrentTime()}`, 170877706)
+				sendVkMessage(`Дата изменения: ${getCurrentTime()}`, 74331800)
+
 				console.log('\x1b[36m%s\x1b[0m', `${data.orders[0].market_hash_name}  ${data.orders[0].buy_order_id} added successfully!`)
 
 				ordersIDsList.push(data.orders[0].buy_order_id)
 				console.log("price of the product: ", data.orders[0].price)
+
+				sendVkMessage(`${data.orders[0].market_hash_name}  ${data.orders[0].buy_order_id}  был добавлен в таблицу!`, 170877706)
+				sendVkMessage(`${data.orders[0].market_hash_name}  ${data.orders[0].buy_order_id}  был добавлен в таблицу!`, 74331800)
+
 			} else {
 				console.log('\x1b[33m%s\x1b[0m', '##### Status: failed:', respData.data.error_message, "#####")
 			}
@@ -210,7 +256,14 @@ function createNewMyOrder (price, count, market_hash_name, app_id) {
 
 function checkMyOrders(error, response, body) {
 	if (!error) {
-		var respData = JSON.parse(body);
+		var respData;
+
+		try {
+	        respData = JSON.parse(body);
+	    } catch(error) {
+	    	return;
+	        console.log('\x1b[33m%s\x1b[0m', '##### Status: failed:', error, "#####"); // error in the above string (in this case, yes)!
+	    }
 
 		if (respData.status == 'success') {
 			var data = respData.data;
@@ -303,6 +356,18 @@ app.get('/start', function (req, res) {
 })
 
 
+app.post('/monitorAll', function (req, res) {
+
+	const list = req.body.list;
+
+	console.log('\x1b[33m%s\x1b[0m', 'Отслеживаем всех..... ')
+	
+	ordersIDsList = list;
+
+	res.redirect('/');
+})
+
+
 app.post('/removeSingleOrder', function (req, res) {
 	const id 	 = req.body.id;
 	const app_id = req.body.app_id;
@@ -338,11 +403,34 @@ app.post('/removeSingleOrder', function (req, res) {
 	});
 })
 
+app.post('/addOrdersToOrdersIDsList', function (req, res) {
+	const id = req.body.id;
+
+	console.log('Попытка добавить в список для слежки ', id)
+
+	for (var i = 0; i < ordersIDsList.length; i++) {
+		if (ordersIDsList[i] == id) {
+			res.send({
+				status: true,
+				message: "уже отслеживается"
+			})
+
+			return;
+		}
+	}
+
+	ordersIDsList.push(id)
+	res.send({
+		status: true,
+		message: "Начали отслеживать"
+	})
+	// console.table(ordersIDsList)
+})
+
 
 
 app.use('/api/balance', routes.balance)
 app.use('/api/orders/', routes.orders)
-
 
 
 // ##### STARTING SERVER #####

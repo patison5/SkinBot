@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon --watch app.js",
+    "vk": "node vk.js",
     "prod": "node app.js"
   },
   "author": "",
@@ -13,6 +14,7 @@
   "devDependencies": {
     "body-parser": "^1.19.0",
     "deleted": "^1.0.5",
+    "easyvk": "^2.5.11",
     "ejs": "^2.7.2",
     "express": "^4.17.1",
     "moment": "^2.24.0",
@@ -22,9 +24,12 @@
     "path": "^0.12.7",
     "request": "^2.88.0",
     "thirty-two": "^1.0.2",
-    "totp-generator": "0.0.7"
+    "totp-generator": "0.0.7",
+    "vk-io": "^4.0.0-rc.29"
   },
   "dependencies": {
-    "console.table": "^0.10.0"
+    "console.table": "^0.10.0",
+    "node-vk-bot": "^1.2.3",
+    "vk-bots": "0.0.3"
   }
 }
