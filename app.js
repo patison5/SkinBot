@@ -183,8 +183,10 @@ function deleteAllMyOrdersFromMonitoringList () {
 }
 
 function clearSellOrdersListFile () {
-	fs.writeFile('./tmp/sellOrdersList.json', '', function(){console.log('done')})
-	console.log('\x1b[36m[SkinBot] --> \x1b[0m', `\x1b[33mServer cleared the sellOrdersList.json file`, ordersIDsList)
+	fs.writeFile('./tmp/sellOrdersList.json', '', function(){
+		console.log('\x1b[36m[SkinBot] --> \x1b[0m', `\x1b[33mServer cleared the sellOrdersList.json file`)
+	})
+	
 }
 
 function encodeQueryData(data) {
@@ -377,114 +379,7 @@ let mainTimer = setTimeout(startTimer, 10);
 
 
 
-// ##### CONTROL ROUTES #####
 
-app.get('/', function (req, res) {
-
-	res.render('index', {
-		isWorking: _isWorking,
-		moment: 	moment
-	})
-
-})
-
-app.get('/stop', function (req, res) {
-	console.log('\x1b[36m[SkinBot] --> \x1b[0m', '\x1b[33mstoping timer..... ')
-	clearTimeout(mainTimer);
-	_isWorking = false;
-
-	res.redirect('/');
-})
-
-app.get('/start', function (req, res) {
-	console.log('\x1b[36m[SkinBot] --> \x1b[0m', '\x1b[33mstarting timer..... ')
-	mainTimer = mainTimer = setTimeout(startTimer, 10);
-	_isWorking = true;
-
-	res.redirect('/');
-})
-
-
-app.post('/monitorAll', function (req, res) {
-
-	const list = req.body.list;
-
-	console.log('\x1b[36m[SkinBot] --> \x1b[0m', '\x1b[33mОтслеживаем всех..... ')
-	
-	ordersIDsList = list;
-
-	res.redirect('/');
-})
-
-
-app.post('/removeSingleOrder', function (req, res) {
-	const id 	 = req.body.id;
-	const app_id = req.body.app_id;
-
-	var deleteURL = `https://bitskins.com/api/v1/cancel_buy_orders/?${encodeQueryData({
-		"api_key": 				API_KEY,
-		"code": 				totp(CONFIG.SECRET_HASH),
-		"app_id": 				app_id,
-		"buy_order_ids": 		id,
-	})}`;
-
-	request.post(deleteURL, function (error, response, body) {
-		if (!error) {
-			var respData = JSON.parse(body);
-
-			if (respData.status == 'success') {
-				var data = respData.data;
-				console.log('\x1b[36m[SkinBot] --> \x1b[0m', `\x1b[36m${data.buy_order_ids} removed successfully!`)
-
-				res.json({
-					ok: true, 
-					message: "Эта хуета удалена",
-					id: id
-				})
-			} else {
-				console.log('\x1b[36m[SkinBot] --> \x1b[0m', `\x1b[33m##### Status: failed: ${respData.data.error_message} #####`)
-				res.json({
-					ok: false, 
-					error: respData.data.error_message
-				})
-			}
-		}
-	});
-})
-
-app.post('/addOrdersToOrdersIDsList', function (req, res) {
-	const id = req.body.id;
-
-	console.log('Попытка добавить в список для слежки ', id)
-
-	for (var i = 0; i < ordersIDsList.length; i++) {
-		if (ordersIDsList[i] == id) {
-			res.send({
-				status: true,
-				message: "уже отслеживается"
-			})
-
-			return;
-		}
-	}
-
-	ordersIDsList.push(id)
-	res.send({
-		status: true,
-		message: "Начали отслеживать"
-	})
-	// console.table(ordersIDsList)
-})
-
-
-
-app.use('/api/balance', routes.balance)
-app.use('/api/orders/', routes.orders)
-
-
-// ##### STARTING SERVER #####
-app.listen(3000)
-console.log('\x1b[36m[SkinBot] --> \x1b[0m', `Starting server on \x1b[32mlocalhost:${3000}`)
 
 
 function writeToFile (src, data) {
@@ -636,17 +531,120 @@ startVKBot((res, _isBTN) => {
 						    
 						}});
 
-					
-
-					// /add_market StatTrak™ AK-47 | Redline (Field-Tested) 35.55
-
 				} else {
 					sendVkMessage("ERROR: /add_market market_hash_name price", 170877706)
 				}
 			}			
 		}
 	}
-	
 })
 
+
+
+// ##### SETTING ROUTES #####
+
+app.get('/', function (req, res) {
+
+	res.render('index', {
+		isWorking: _isWorking,
+		moment: 	moment
+	})
+
+})
+
+app.get('/stop', function (req, res) {
+	console.log('\x1b[36m[SkinBot] --> \x1b[0m', '\x1b[33mstoping timer..... ')
+	clearTimeout(mainTimer);
+	_isWorking = false;
+
+	res.redirect('/');
+})
+
+app.get('/start', function (req, res) {
+	console.log('\x1b[36m[SkinBot] --> \x1b[0m', '\x1b[33mstarting timer..... ')
+	mainTimer = mainTimer = setTimeout(startTimer, 10);
+	_isWorking = true;
+
+	res.redirect('/');
+})
+
+
+app.post('/monitorAll', function (req, res) {
+
+	const list = req.body.list;
+
+	console.log('\x1b[36m[SkinBot] --> \x1b[0m', '\x1b[33mОтслеживаем всех..... ')
+	
+	ordersIDsList = list;
+
+	res.redirect('/');
+})
+
+
+app.post('/removeSingleOrder', function (req, res) {
+	const id 	 = req.body.id;
+	const app_id = req.body.app_id;
+
+	var deleteURL = `https://bitskins.com/api/v1/cancel_buy_orders/?${encodeQueryData({
+		"api_key": 				API_KEY,
+		"code": 				totp(CONFIG.SECRET_HASH),
+		"app_id": 				app_id,
+		"buy_order_ids": 		id,
+	})}`;
+
+	request.post(deleteURL, function (error, response, body) {
+		if (!error) {
+			var respData = JSON.parse(body);
+
+			if (respData.status == 'success') {
+				var data = respData.data;
+				console.log('\x1b[36m[SkinBot] --> \x1b[0m', `\x1b[36m${data.buy_order_ids} removed successfully!`)
+
+				res.json({
+					ok: true, 
+					message: "Эта хуета удалена",
+					id: id
+				})
+			} else {
+				console.log('\x1b[36m[SkinBot] --> \x1b[0m', `\x1b[33m##### Status: failed: ${respData.data.error_message} #####`)
+				res.json({
+					ok: false, 
+					error: respData.data.error_message
+				})
+			}
+		}
+	});
+})
+
+app.post('/addOrdersToOrdersIDsList', function (req, res) {
+	const id = req.body.id;
+
+	console.log('Попытка добавить в список для слежки ', id)
+
+	for (var i = 0; i < ordersIDsList.length; i++) {
+		if (ordersIDsList[i] == id) {
+			res.send({
+				status: true,
+				message: "уже отслеживается"
+			})
+
+			return;
+		}
+	}
+
+	ordersIDsList.push(id)
+	res.send({
+		status: true,
+		message: "Начали отслеживать"
+	})
+	// console.table(ordersIDsList)
+})
+
+
+app.use('/api/balance', routes.balance)
+app.use('/api/orders/', routes.orders)
+
+// ##### STARTING SERVER #####
+app.listen(3000)
+console.log('\x1b[36m[SkinBot] --> \x1b[0m', `Starting server on \x1b[32mlocalhost:${3000}`)
 console.log('\x1b[36m[VK_BOT]  --> \x1b[0m', `Starting VK bot`)
