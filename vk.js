@@ -5,8 +5,6 @@ exports.startVKBot = (callback) => {
 
 	const baseBuilder = Keyboard.builder();
 
-	console.log(Keyboard.NEGATIVE_COLOR)
-
 	// Maybe user is not register
 	const userIsNotRegistered = true;
 
@@ -73,14 +71,27 @@ exports.startVKBot = (callback) => {
 			payload: {
 				command: 'no_active'
 			}
+		})
+
+		.row()
+		.textButton({
+			label: 'Очистить файл',
+			// color: "4a76a8",
+			color: Keyboard.PRIMARY_COLOR,
+			payload: {
+				command: 'clear_file'
+			}
 		});
 	}
 
 	vk.updates.on('message', async (context, next) => {
 
 		if (context.messagePayload) {
-			callback(context.messagePayload.command);
+			callback(context.messagePayload.command, true);
+		} else {
+			callback(context.text, false);
 		}
+		
 
 		await next();
 
@@ -88,8 +99,9 @@ exports.startVKBot = (callback) => {
 
 
 	vk.api.messages.send({
-		user_ids: [170877706, 74331800],
-		message: "Hello",
+		// user_ids: [170877706, 74331800],
+		user_ids: [170877706],
+		message: "[BOT] --> Бот начал свою работу",
 		keyboard: String(baseBuilder)
 	});
 

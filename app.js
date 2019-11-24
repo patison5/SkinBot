@@ -7,6 +7,7 @@ const bodyParser 		= require("body-parser");
 const moment 			= require('moment');
 const cTable 			= require('console.table');
 const getCurrentTime	= require('./plugins').getCurrentTime;
+const fs 				= require('fs');
 
 const { startVKBot }	= require('./vk');
 
@@ -67,6 +68,7 @@ var _isOrderUpdated = {
 
 
 var ordersIDsList = [];
+var sellOrdersList = []
 
 console.table('\x1b[33m', [CONFIG], '\x1b[0m')
 
@@ -100,7 +102,12 @@ function getAllMyOrders () {
 
 			if (!error) {
 
-				var respData = JSON.parse(body);
+				try {
+			        respData = JSON.parse(body);
+			    } catch(error) {
+			    	return;
+			        console.log('\x1b[36m[SkinBot] --> \x1b[0m', '\x1b[33m##### Status: failed:', error, "#####"); // error in the above string (in this case, yes)!
+			    }
 
 				if (respData.status == 'success') {
 
@@ -133,7 +140,7 @@ function getAllMyOrders () {
 						// request.post(getMarketOrders, checkMyOrders);
 					}
 				} else {
-					console.log('\x1b[33m%s\x1b[0m', `##### Status: failed: ${ respData.data.error_message } #####`)
+					console.log('\x1b[36m[SkinBot] --> \x1b[0m', `\x1b[33m##### Status: failed: ${ respData.data.error_message } #####`)
 				}
 			}
 		})
@@ -159,10 +166,10 @@ function addAllMyOrdersToMonitoringList () {
 				if (respData.status == 'success') {
 					for (var j = 0; j < respData.data.orders.length; j++) {
 						ordersIDsList.push(respData.data.orders[j].buy_order_id)
-						console.log('\x1b[33m%s\x1b[0m', `${respData.data.orders[j].market_hash_name}`, '\x1b[32m', `[${respData.data.orders[j].buy_order_id}]`, '\x1b[0m', ` added to monitoring list.`)
+						console.log('\x1b[36m[SkinBot] --> \x1b[0m', `\x1b[33m${respData.data.orders[j].market_hash_name}`.padStart(45), '\x1b[32m', `[${respData.data.orders[j].buy_order_id}]`, '\x1b[0m', ` added to monitoring list.`)
 					}
 				} else {
-					console.log('\x1b[33m%s\x1b[0m', `##### Status: failed: ${ respData.data.error_message } #####`)
+					console.log('\x1b[36m[SkinBot] --> \x1b[0m', `\x1b[33m##### Status: failed: ${ respData.data.error_message } #####`)
 				}
 			}
 		})
@@ -172,7 +179,12 @@ function addAllMyOrdersToMonitoringList () {
 function deleteAllMyOrdersFromMonitoringList () {
 	ordersIDsList = [];
 
-	console.log('\x1b[33m%s\x1b[0m', `Server removed all orders from monitoring list`, ordersIDsList)
+	console.log('\x1b[36m[SkinBot] --> \x1b[0m', `\x1b[33mServer removed all orders from monitoring list`, ordersIDsList)
+}
+
+function clearSellOrdersListFile () {
+	fs.writeFile('./tmp/sellOrdersList.json', '', function(){console.log('done')})
+	console.log('\x1b[36m[SkinBot] --> \x1b[0m', `\x1b[33mServer cleared the sellOrdersList.json file`, ordersIDsList)
 }
 
 function encodeQueryData(data) {
@@ -184,7 +196,7 @@ function encodeQueryData(data) {
 
 function setMyOrderNewPrice (order, myOrders, app_id) {
 
-	console.log('\x1b[33m%s\x1b[0m', `SOMEONE IS TRYING TO FUCK US UP - TAKING THE NECESSARY MEASURES:`)
+	console.log('\x1b[36m[SkinBot] --> \x1b[0m', `\x1b[33mSOMEONE IS TRYING TO FUCK US UP - TAKING THE NECESSARY MEASURES:`)
 
 	//для отправки сообщения с сервера
 	sendVkMessage('КТО-ТО ПЫТАЕТСЯ НАС НАЕБАТЬ! ПРЕДПРИНИМАЕМ МЕРЫ!', 170877706)
@@ -213,7 +225,7 @@ function cancelMyOrders (myOrders, _isUpdated , price, app_id) {
 
 		for (var j = 0; j < ordersIDsList.length; j++) {
 			if (ordersIDsList[j] == order.buy_order_id){
-				console.log(`removingfrom dataset ${ordersIDsList[j]}`)
+				console.log(`[SkinBot] --> removingfrom dataset ${ordersIDsList[j]}`)
 				ordersIDsList.splice(j, 1);
 
 				break;
@@ -227,7 +239,7 @@ function cancelMyOrders (myOrders, _isUpdated , price, app_id) {
 
     			if (respData.status == 'success') {
     				var data = respData.data;
-    				console.log('\x1b[36m%s\x1b[0m', `${data.buy_order_ids} removed successfully!`)
+    				console.log('\x1b[36m[SkinBot] --> \x1b[0m', `\x1b[36m${data.buy_order_ids} removed successfully!`)
 
 					sendVkMessage(`${data.buy_order_ids} был удален!`, 170877706)
 					sendVkMessage(`${data.buy_order_ids} был удален!`, 74331800)
@@ -238,10 +250,10 @@ function cancelMyOrders (myOrders, _isUpdated , price, app_id) {
 						createNewMyOrder(price, myOrders.length, myOrders[0].market_hash_name, data.app_id);
 
     			} else {
-    				console.log('\x1b[33m%s\x1b[0m', '##### Status: failed:', respData.data.error_message, "#####")
+    				console.log('\x1b[36m[SkinBot] --> \x1b[0m', '\x1b[33m##### Status: failed:', respData.data.error_message, "#####")
     			}
     		} else {
-    			console.log('\x1b[33m%s\x1b[0m', '##### Status: failed:', error, "#####")
+    			console.log('\x1b[36m[SkinBot] --> \x1b[0m', '\x1b[33m##### Status: failed:', error, "#####")
     		}
 		});
 
@@ -269,7 +281,7 @@ function createNewMyOrder (price, count, market_hash_name, app_id) {
 					data.orders[0].updated_at = getCurrentTime();
 					_isOrderUpdated[respData.data.app_id] = true;
 
-				console.table('\x1b[33m', `Update time: ${getCurrentTime()}`, '\x1b[0m')
+				console.table('\x1b[36m[SkinBot] --> \x1b[0m', `\x1b[33mUpdate time: ${getCurrentTime()}`, '\x1b[0m')
 				
 				sendVkMessage(`Дата изменения: ${getCurrentTime()}`, 170877706)
 				sendVkMessage(`Дата изменения: ${getCurrentTime()}`, 74331800)
@@ -277,16 +289,16 @@ function createNewMyOrder (price, count, market_hash_name, app_id) {
 				console.log('\x1b[36m%s\x1b[0m', `${data.orders[0].market_hash_name}  ${data.orders[0].buy_order_id} added successfully!`)
 
 				ordersIDsList.push(data.orders[0].buy_order_id)
-				console.log("price of the product: ", data.orders[0].price)
+				console.log("[SkinBot] --> Price of the product: ", data.orders[0].price)
 
 				sendVkMessage(`${data.orders[0].market_hash_name}  ${data.orders[0].buy_order_id}  был добавлен в таблицу!`, 170877706)
 				sendVkMessage(`${data.orders[0].market_hash_name}  ${data.orders[0].buy_order_id}  был добавлен в таблицу!`, 74331800)
 
 			} else {
-				console.log('\x1b[33m%s\x1b[0m', '##### Status: failed:', respData.data.error_message, "#####")
+				console.log('\x1b[36m[SkinBot] --> \x1b[0m', '\x1b[33m##### Status: failed:', respData.data.error_message, "#####")
 			}
 		} else {
-			console.log('\x1b[33m%s\x1b[0m', '##### Status: failed:', error, "#####")
+			console.log('\x1b[36m[SkinBot] --> \x1b[0m', '\x1b[33m##### Status: failed:', error, "#####")
 		}
 	});
 }
@@ -299,7 +311,7 @@ function checkMyOrders(error, response, body) {
 	        respData = JSON.parse(body);
 	    } catch(error) {
 	    	return;
-	        console.log('\x1b[33m%s\x1b[0m', '##### Status: failed:', error, "#####"); // error in the above string (in this case, yes)!
+	        console.log('\x1b[36m[SkinBot] --> \x1b[0m', '\x1b[33m##### Status: failed:', error, "#####"); // error in the above string (in this case, yes)!
 	    }
 
 		if (respData.status == 'success') {
@@ -325,7 +337,7 @@ function checkMyOrders(error, response, body) {
 			}
 
 			if (orders[0].is_mine){
-				// console.log('\x1b[33m%s\x1b[0m', 'выход по первому условию')
+				// console.log('\x1b[33m%s\x1b[0m', '[SkinBot] --> выход по первому условию')
 				return;
 			}
 
@@ -349,7 +361,7 @@ function checkMyOrders(error, response, body) {
 			}
 		}
 	} else {
-		console.log('\x1b[33m%s\x1b[0m', '##### Status: failed:', error, "#####")
+		console.log('\x1b[36m[SkinBot] --> \x1b[0m', '\x1b[33m##### Status: failed:', error, "#####")
 	}
 }
 
@@ -377,7 +389,7 @@ app.get('/', function (req, res) {
 })
 
 app.get('/stop', function (req, res) {
-	console.log('\x1b[33m%s\x1b[0m', 'stoping timer..... ')
+	console.log('\x1b[36m[SkinBot] --> \x1b[0m', '\x1b[33mstoping timer..... ')
 	clearTimeout(mainTimer);
 	_isWorking = false;
 
@@ -385,7 +397,7 @@ app.get('/stop', function (req, res) {
 })
 
 app.get('/start', function (req, res) {
-	console.log('\x1b[33m%s\x1b[0m', 'starting timer..... ')
+	console.log('\x1b[36m[SkinBot] --> \x1b[0m', '\x1b[33mstarting timer..... ')
 	mainTimer = mainTimer = setTimeout(startTimer, 10);
 	_isWorking = true;
 
@@ -397,7 +409,7 @@ app.post('/monitorAll', function (req, res) {
 
 	const list = req.body.list;
 
-	console.log('\x1b[33m%s\x1b[0m', 'Отслеживаем всех..... ')
+	console.log('\x1b[36m[SkinBot] --> \x1b[0m', '\x1b[33mОтслеживаем всех..... ')
 	
 	ordersIDsList = list;
 
@@ -422,7 +434,7 @@ app.post('/removeSingleOrder', function (req, res) {
 
 			if (respData.status == 'success') {
 				var data = respData.data;
-				console.log('\x1b[36m%s\x1b[0m', `${data.buy_order_ids} removed successfully!`)
+				console.log('\x1b[36m[SkinBot] --> \x1b[0m', `\x1b[36m${data.buy_order_ids} removed successfully!`)
 
 				res.json({
 					ok: true, 
@@ -430,7 +442,7 @@ app.post('/removeSingleOrder', function (req, res) {
 					id: id
 				})
 			} else {
-				console.log('\x1b[33m%s\x1b[0m', `##### Status: failed: ${respData.data.error_message} #####`)
+				console.log('\x1b[36m[SkinBot] --> \x1b[0m', `\x1b[33m##### Status: failed: ${respData.data.error_message} #####`)
 				res.json({
 					ok: false, 
 					error: respData.data.error_message
@@ -472,56 +484,169 @@ app.use('/api/orders/', routes.orders)
 
 // ##### STARTING SERVER #####
 app.listen(3000)
-console.log(`Starting server on localhost:${3000}`)
+console.log('\x1b[36m[SkinBot] --> \x1b[0m', `Starting server on \x1b[32mlocalhost:${3000}`)
 
-startVKBot((res) => {
-	switch (res) {
-		case "start":
-			console.log('\x1b[32m%s\x1b[0m', 'server is starting ckecking')
-			mainTimer = mainTimer = setTimeout(startTimer, 10);
-			_isWorking = true;
 
-			sendVkMessage(`Бот проверок запущен`, 170877706)
-			sendVkMessage(`Бот проверок запущен`, 74331800)
-			break;
+function writeToFile (src, data) {
+	fs.writeFile(src, JSON.stringify(data), function(err) {
+	    if(err) {
+	    	sendVkMessage(err, 170877706)
 
-		case "stop":
-			console.log('\x1b[32m%s\x1b[0m', 'server is stoping checking')
-			clearTimeout(mainTimer);
-			_isWorking = false;
+	        return console.log('\x1b[36m[SkinBot] --> \x1b[0m', `Error additing to file: ${err}`);
+	    }
 
-			sendVkMessage(`Бот проверок остановлен`, 170877706)
-			sendVkMessage(`Бот проверок остановлен`, 74331800)
-			break;
+	    console.log('\x1b[36m[SkinBot] --> \x1b[0m', "Added new data to sellOrdersList.json")
+	    sendVkMessage("The data was saved to file!", 170877706)
+	}); 
+}
 
-		case "all_active":
-			addAllMyOrdersToMonitoringList();
+function updateFile (src, data) {
+	fs.writeFileSync(src, '')
 
-			sendVkMessage(`Все заказы успешно добавлены в список мониторинга`, 170877706)
-			sendVkMessage(`Все заказы успешно добавлены в список мониторинга`, 74331800)
-			console.log('server is additing all orders to monitoring list')
-			break;
+	fs.writeFile(src, JSON.stringify(data), function(err) {
+	    if(err) {
+	    	sendVkMessage(err, 170877706)
 
-		case "no_active":
-			deleteAllMyOrdersFromMonitoringList();
+	        return console.log('\x1b[36m[SkinBot] --> \x1b[0m', `Error updating file: ${err}`);
+	    }
 
-			sendVkMessage(`Все заказы успешно удалены из списка мониторинга`, 170877706)
-			sendVkMessage(`Все заказы успешно удалены из списка мониторинга`, 74331800)
-			break;
+	    console.log('\x1b[36m[SkinBot] --> \x1b[0m', "sellOrdersList.json was updated")
+	    sendVkMessage("The data was updated!", 170877706)
+	}); 
+}
 
-		default:
-			console.log("no command found...")
+startVKBot((res, _isBTN) => {
+	res = res.split(' ');
+
+	if (_isBTN) {
+		switch (res[0]) {
+			case "start":
+				console.log('\x1b[36m[SkinBot] --> \x1b[0m', '\x1b[32mserver is starting ckecking')
+				mainTimer = mainTimer = setTimeout(startTimer, 10);
+				_isWorking = true;
+
+				sendVkMessage(`Бот проверок запущен`, 170877706)
+				sendVkMessage(`Бот проверок запущен`, 74331800)
+				break;
+
+			case "stop":
+				console.log('\x1b[36m[SkinBot] --> \x1b[0m', '\x1b[32mserver is stoping checking')
+				clearTimeout(mainTimer);
+				_isWorking = false;
+
+				sendVkMessage(`Бот проверок остановлен`, 170877706)
+				sendVkMessage(`Бот проверок остановлен`, 74331800)
+				break;
+
+			case "all_active":
+				addAllMyOrdersToMonitoringList();
+
+				sendVkMessage(`Все заказы успешно добавлены в список мониторинга`, 170877706)
+				sendVkMessage(`Все заказы успешно добавлены в список мониторинга`, 74331800)
+				console.log('\x1b[36m[SkinBot] --> \x1b[0m','server is additing all orders to monitoring list\n')
+				break;
+
+			case "no_active":
+				deleteAllMyOrdersFromMonitoringList();
+
+				sendVkMessage(`Все заказы успешно удалены из списка мониторинга`, 170877706)
+				sendVkMessage(`Все заказы успешно удалены из списка мониторинга`, 74331800)
+				break;
+
+			case "clear_file":
+				clearSellOrdersListFile();
+
+				sendVkMessage(`Файл очищен`, 170877706)
+				sendVkMessage(`Файл очищен`, 74331800)
+				break;
+
+			default:
+				console.log('\x1b[36m[SkinBot] --> \x1b[0m', "no command found...")
+		}
+	} else {
+		if (res[0][0] == "/") {
+			var command = res[0].slice(1);
+			var args = res.splice(1)
+
+			// console.log(args)
+
+			if (command == "add_market") {
+
+				var price = args.pop();
+				var title = args.join(' ');
+
+				if (!isNaN(price) && (title.length != 0)) {
+
+					// sellOrdersList.push()
+
+					fs.readFile('./tmp/sellOrdersList.json', 'utf8', function readFileCallback(err, data){
+					    if (err){
+					        console.log('\x1b[36m[SkinBot] --> \x1b[0m', `Error reading file: ${err}`);
+					        sendVkMessage(err, 170877706)
+					    } else {
+					    	var respData;
+
+					    	if (data.length != 0) {
+					    		try {
+							        respData = JSON.parse(data);
+
+							        var _writeToFileflag = true;
+							        var _updateFlag	     = false;
+
+							        for (var i = 0; i < respData.length; i++) {
+
+							        	if ((respData[i].market_hash_name == title) && (respData[i].price == price)) {
+							        		_writeToFileflag = false;
+
+							        		break;
+							        	}
+
+							        	if ((respData[i].market_hash_name == title) && (respData[i].price != price)) {
+							        		_updateFlag = true;
+							        		_writeToFileflag = false;
+							        		respData[i].price = price;
+
+							        		break;
+							        	}
+							        }
+
+							        if (_writeToFileflag)
+							        	writeToFile("./tmp/sellOrdersList.json", {
+											market_hash_name: title,
+											price: price,
+										})
+							        else if (_updateFlag){
+							        	updateFile("./tmp/sellOrdersList.json", respData)
+							        }
+							        else
+							        	sendVkMessage("Эта хуйня уже существует!", 170877706)
+
+							    } catch(error) {
+							    	return;
+							        console.log('\x1b[36m[SkinBot] --> \x1b[0m', '\x1b[33m##### Status: failed:', error, "#####"); // error in the above string (in this case, yes)!
+							    }
+					    	} else {
+					    		writeToFile("./tmp/sellOrdersList.json", [
+						    		{
+										market_hash_name: title,
+										price: price,
+									}
+								])
+					    	}
+						    
+						}});
+
+					
+
+					// /add_market StatTrak™ AK-47 | Redline (Field-Tested) 35.55
+
+				} else {
+					sendVkMessage("ERROR: /add_market market_hash_name price", 170877706)
+				}
+			}			
+		}
 	}
+	
 })
-console.log(`Starting VK bot`)
 
-
-
-
-module.exports = {
-    myfunc: myfunc
-};
-
-function myfunc(callback){    
-    callback(err,reply);    
-};
+console.log('\x1b[36m[VK_BOT]  --> \x1b[0m', `Starting VK bot`)
