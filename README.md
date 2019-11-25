@@ -30,3 +30,16 @@ Start server in production mode
 ```bash
 $ npm run prod
 ```
+
+
+<p align="center">
+  <img width="460" src="https://github.com/patison5/SkinBot/blob/master/img/sc1.png?raw=true">
+</p>
+
+<p align="center">
+  <img width="460" src="https://github.com/patison5/SkinBot/blob/master/img/Screenshot_1.png?raw=true">
+</p>
+
+<p align="center">
+  <img width="460" src="https://github.com/patison5/SkinBot/blob/master/img/Screenshot_2.png?raw=true">
+</p>
