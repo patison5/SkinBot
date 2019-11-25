@@ -33,7 +33,7 @@ $ npm run prod
 
 
 <p align="center">
-  <img width="460" src="https://github.com/patison5/SkinBot/blob/master/img/sc1.png?raw=true">
+  <img width="100%" src="https://github.com/patison5/SkinBot/blob/master/img/sc1.png?raw=true">
 </p>
 
 <p align="center">
