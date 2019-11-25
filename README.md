@@ -8,7 +8,8 @@ Create config.js in root directory and paste there this code.
 const config = {
 	API_KEY:     	"",
 	SECRET_HASH: 	"",
-	MY_GAMES: 	[570, 730, 252490]
+	MY_GAMES: 	[570, 730, 252490],
+	VK_TOKEN:	""
 }
 
 module.exports = config;
