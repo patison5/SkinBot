@@ -81,15 +81,79 @@ exports.startVKBot = (callback) => {
 			payload: {
 				command: 'clear_file'
 			}
+		})
+		.row()
+		.textButton({
+			label: 'Удалить Order',
+			// color: "4a76a8",
+			color: Keyboard.PRIMARY_COLOR,
+			payload: {
+				command: 'delete_active_order'
+			}
 		});
+	}
+
+	function answerFromServer (message, _isBroadcast, type = null, data = null) {
+
+		var tmpBuilder = Keyboard.builder();
+		
+		if (type == "delete_active_order") {
+			var orders = data.orders;
+
+			for (var i = 0; i < orders.length; i++) {
+
+				var name = orders[i].market_hash_name.slice(0, 33)
+				var price = orders[i].price.slice(0,5)
+
+				tmpBuilder
+					.textButton({
+						label: `${name} ${price}$`,
+						payload: {
+							command: 'delete_active_order_by_id',
+							data: {
+								buy_order_id: orders[i].buy_order_id,
+								app_id: orders[i].app_id
+							}
+						}
+					})
+					.row()
+			}
+
+			tmpBuilder
+				.textButton({
+					label: "Вернуться",
+					color: Keyboard.PRIMARY_COLOR,
+					payload: {
+						command: 'come_back'
+					}
+				})
+				.row()
+		} else {
+			var tmpBuilder = baseBuilder.clone();
+		}
+
+
+		if (_isBroadcast) {
+			vk.api.messages.send({
+				user_ids: [170877706, 74331800],
+				message: message,
+				keyboard: String(baseBuilder)
+			});
+		} else {
+			vk.api.messages.send({
+				user_ids: [170877706],
+				message: message,
+				keyboard: String(tmpBuilder)
+			});
+		}
 	}
 
 	vk.updates.on('message', async (context, next) => {
 
 		if (context.messagePayload) {
-			callback(context.messagePayload.command, true);
+			callback(context.messagePayload, true, answerFromServer);
 		} else {
-			callback(context.text, false);
+			callback(context.text, false, answerFromServer);
 		}
 		
 
