@@ -1,7 +1,7 @@
 <p align="center">
   <img width="70%" src="https://sun9-64.userapi.com/c855720/v855720664/17c493/gQ-lxP4r9cg.jpg">
 	
-  <h1 style="text-align:center">SkinBot</h1>
+  <p>SkinBot</p>
 </p>
 
 #
