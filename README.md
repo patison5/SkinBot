@@ -1,10 +1,8 @@
 <p align="center">
   <img width="70%" src="https://sun9-64.userapi.com/c855720/v855720664/17c493/gQ-lxP4r9cg.jpg">
-	
-  <h3 style="text-align: center;" markdown="1">SkinBot</h3>
 </p>
 
-#
+# SkinBot
 
 ### installation
 
