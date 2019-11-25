@@ -31,11 +31,13 @@ Start server in production mode
 $ npm run prod
 ```
 
-
+### Console output
 <p align="center">
   <img width="100%" src="https://github.com/patison5/SkinBot/blob/master/img/sc1.png?raw=true">
 </p>
 
+
+### VK Bot
 <p align="center">
   <img width="460" src="https://github.com/patison5/SkinBot/blob/master/img/Screenshot_1.png?raw=true">
 </p>
