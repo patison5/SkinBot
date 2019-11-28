@@ -134,4 +134,8 @@ window.onload = function () {
 
 	let updateDataSyncTimer = setTimeout(updateDataSync, 0);
 
+	function setAllToMonitoring () {
+		
+	}
+
 }

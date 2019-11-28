@@ -37,7 +37,7 @@ const VK_TOKEN 	= CONFIG.VK_TOKEN;
 
 
 const maxPrices = {
-	'Dark Artistry Cape': 107.01,
+	'Dark Artistry Cape': 112.01,
 	'Mace of Aeons': 2,
 	'Karambit | Autotronic (Well-Worn)': 2,
 	'Plate Carrier - Black': 41,
@@ -45,17 +45,18 @@ const maxPrices = {
 	'Fiery Soul of the Slayer': 19,
 	'Manifold Paradox': 18.91,
 
-	'Rotten Stache': 102.6,
+	'Rotten Stache': 102.01,
 	'Exalted Manifold Paradox': 21.3,
-	'Big Grin': 128,
-	'Tempered Mask': 40,
-	'Plate Carrier - Black': 56,
-	'Glowing Skull': 23.5,
+	'Big Grin': 132,
+	'Tempered Mask': 39,
+	'Plate Carrier - Black': 55.5,
+	'Glowing Skull': 24.51,
 	'Alien Red': 23,
 	
 	'AK-47 | Neon Revolution (Field-Tested)': 15.5,
 	'M4A4 | Neo-Noir (Field-Tested)': 16,
 	'StatTrak™ AK-47 | Redline (Field-Tested)': 25,
+	'Banana Eoka': 24.5
 }
 
 var _isCreating = true;
@@ -227,7 +228,7 @@ function cancelMyOrders (myOrders, _isUpdated , price, app_id) {
 
 		for (var j = 0; j < ordersIDsList.length; j++) {
 			if (ordersIDsList[j] == order.buy_order_id){
-				console.log(`[SkinBot] --> removingfrom dataset ${ordersIDsList[j]}`)
+				console.log(`\x1b[36m[SkinBot] -->\x1b[0m  removing from dataset ${ordersIDsList[j]}`)
 				ordersIDsList.splice(j, 1);
 
 				break;
@@ -242,10 +243,8 @@ function cancelMyOrders (myOrders, _isUpdated , price, app_id) {
     			if (respData.status == 'success') {
     				var data = respData.data;
     				console.log('\x1b[36m[SkinBot] --> \x1b[0m', `\x1b[36m${data.buy_order_ids} removed successfully!`)
-
-					sendVkMessage(`${data.buy_order_ids} был удален!`, 170877706)
-					sendVkMessage(`${data.buy_order_ids} был удален!`, 74331800)
-
+					// sendVkMessage(`${data.buy_order_ids} был удален!`, 170877706)
+					// sendVkMessage(`${data.buy_order_ids} был удален!`, 74331800)
 
     				// не забыть испарвить вероятность слияние массивов.. проверить работу кол-бэка и создание нового ордера
     				if ((_isUpdated && (myOrders.length != 0)))
@@ -283,18 +282,28 @@ function createNewMyOrder (price, count, market_hash_name, app_id) {
 					data.orders[0].updated_at = getCurrentTime();
 					_isOrderUpdated[respData.data.app_id] = true;
 
-				console.table('\x1b[36m[SkinBot] --> \x1b[0m', `\x1b[33mUpdate time: ${getCurrentTime()}`, '\x1b[0m')
-				
-				sendVkMessage(`Дата изменения: ${getCurrentTime()}`, 170877706)
-				sendVkMessage(`Дата изменения: ${getCurrentTime()}`, 74331800)
-
+				console.log('\x1b[36m[SkinBot] --> \x1b[33m', `Update time: ${getCurrentTime()}\x1b[0m`)
 				console.log('\x1b[36m%s\x1b[0m', `${data.orders[0].market_hash_name}  ${data.orders[0].buy_order_id} added successfully!`)
-
-				ordersIDsList.push(data.orders[0].buy_order_id)
 				console.log("[SkinBot] --> Price of the product: ", data.orders[0].price)
 
-				sendVkMessage(`${data.orders[0].market_hash_name}  ${data.orders[0].buy_order_id}  был добавлен в таблицу!`, 170877706)
-				sendVkMessage(`${data.orders[0].market_hash_name}  ${data.orders[0].buy_order_id}  был добавлен в таблицу!`, 74331800)
+				// sendVkMessage(`Дата изменения: ${getCurrentTime()}\n${data.orders[0].market_hash_name}  ${data.orders[0].buy_order_id}  был добавлен в таблицу!\nЦена: ${data.orders[0].price}$/${maxPrices[data.orders[0].market_hash_name]}$`, 170877706)
+				// sendVkMessage(`Дата изменения: ${getCurrentTime()}\n${data.orders[0].market_hash_name}  ${data.orders[0].buy_order_id}  был добавлен в таблицу!\nЦена: ${data.orders[0].price}$/${maxPrices[data.orders[0].market_hash_name]}$`, 74331800)
+				
+				sendVkMessage(
+					`${data.orders[0].market_hash_name} был обновлен!\n` + 
+					`ID:   ${data.orders[0].buy_order_id}` +
+					`Дата: ${getCurrentTime()}\n` + 
+					`Цена: ${data.orders[0].price}$/${maxPrices[data.orders[0].market_hash_name]}$`,
+				170877706);
+
+				sendVkMessage(
+					`${data.orders[0].market_hash_name} был обновлен!\n` + 
+					`ID:   ${data.orders[0].buy_order_id}` +
+					`Дата: ${getCurrentTime()}\n` + 
+					`Цена: ${data.orders[0].price}$/${maxPrices[data.orders[0].market_hash_name]}$`,
+				74331800);
+
+				ordersIDsList.push(data.orders[0].buy_order_id)
 
 			} else {
 				console.log('\x1b[36m[SkinBot] --> \x1b[0m', '\x1b[33m##### Status: failed:', respData.data.error_message, "#####")
@@ -382,7 +391,40 @@ let mainTimer = setTimeout(startTimer, 10);
 
 
 
+function appendToFile(src, newData) {
+	fs.readFile(src, 'utf8', function readFileCallback(err, data) {
+	    if (err){
+	        console.log('\x1b[36m[SkinBot] --> \x1b[0m', `Error reading file: ${err}`);
+	        sendVkMessage(err, 170877706)
+	    } else {
+	    	var respData;
 
+	    	if (data.length != 0) {
+	    		try {
+			        respData = JSON.parse(data);
+					
+			        respData.push(newData);
+
+
+			        fs.writeFile(src, JSON.stringify(respData), function(err) {
+					    if(err) {
+					    	sendVkMessage(err, 170877706)
+
+					        return console.log('\n\x1b[36m[SkinBot] --> \x1b[0m', `Error additing to file: ${err}`);
+					    }
+
+					    console.log('\n\x1b[36m[SkinBot] --> \x1b[0m', "Added new data to sellOrdersList.json")
+					    sendVkMessage("The data was saved to file!", 170877706)
+					}); 
+
+			    } catch(error) {
+			    	return;
+			        console.log('\x1b[36m[SkinBot] --> \x1b[0m', '\x1b[33m', error); // error in the above string (in this case, yes)!
+			    }
+			}
+		}
+	});
+}
 
 function writeToFile (src, data) {
 	fs.writeFile(src, JSON.stringify(data), function(err) {
@@ -577,15 +619,14 @@ startVKBot((res, _isBTN, answerBackToVk) => {
 							        	}
 							        }
 
-							        if (_writeToFileflag)
-							        	writeToFile("./tmp/sellOrdersList.json", {
+							        if (_writeToFileflag){
+							        	appendToFile("./tmp/sellOrdersList.json", {
 											market_hash_name: title,
 											price: price,
 										})
-							        else if (_updateFlag){
+							        } else if (_updateFlag){
 							        	updateFile("./tmp/sellOrdersList.json", respData)
-							        }
-							        else{
+							        } else{
 							        	console.log('\x1b[36m[SkinBot] --> \x1b[0m', "Trying to add data to sellOrdersList.json, but data already exists");
 							        	sendVkMessage("Эта хуйня уже существует!", 170877706)
 							        }
