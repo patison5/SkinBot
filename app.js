@@ -6,8 +6,10 @@ const path 				= require('path')
 const bodyParser 		= require("body-parser");
 const moment 			= require('moment');
 const cTable 			= require('console.table');
-const getCurrentTime	= require('./plugins').getCurrentTime;
 const fs 				= require('fs');
+
+const { getCurrentTime, 
+		changeFontStyleToBold }	= require('./plugins');
 
 const { startVKBot }	= require('./vk');
 
@@ -52,6 +54,7 @@ const maxPrices = {
 	'Plate Carrier - Black': 55.5,
 	'Glowing Skull': 24.51,
 	'Alien Red': 23,
+	'Christmas Lights': 21.1,
 	
 	'AK-47 | Neon Revolution (Field-Tested)': 15.5,
 	'M4A4 | Neo-Noir (Field-Tested)': 16,
@@ -165,10 +168,16 @@ function addAllMyOrdersToMonitoringList () {
 			if (!error) {
 				var respData = JSON.parse(body);
 				if (respData.status == 'success') {
+					var VKMessage = "";
+
 					for (var j = 0; j < respData.data.orders.length; j++) {
 						ordersIDsList.push(respData.data.orders[j].buy_order_id)
 						console.log('\x1b[36m[SkinBot] --> \x1b[0m', `\x1b[33m${respData.data.orders[j].market_hash_name}`.padStart(45), '\x1b[32m', `[${respData.data.orders[j].buy_order_id}]`, '\x1b[0m', ` added to monitoring list.`)
+						VKMessage += `Отслеживаем: ${changeFontStyleToBold(respData.data.orders[j].market_hash_name)}` + '\n';
 					}
+
+					sendVkMessage((VKMessage.length == 0) ? `Нет данных для ${respData.data.app_id}` : VKMessage, 170877706);
+					sendVkMessage((VKMessage.length == 0) ? `Нет данных для ${respData.data.app_id}` : VKMessage, 74331800);
 				} else {
 					console.log('\x1b[36m[SkinBot] --> \x1b[0m', `\x1b[33m##### Status: failed: ${ respData.data.error_message } #####`)
 				}
@@ -202,8 +211,8 @@ function setMyOrderNewPrice (order, myOrders, app_id) {
 	console.log('\x1b[36m[SkinBot] --> \x1b[0m', `\x1b[33mSOMEONE IS TRYING TO FUCK US UP - TAKING THE NECESSARY MEASURES:`)
 
 	//для отправки сообщения с сервера
-	sendVkMessage('КТО-ТО ПЫТАЕТСЯ НАС НАЕБАТЬ! ПРЕДПРИНИМАЕМ МЕРЫ!', 170877706)
-	sendVkMessage('КТО-ТО ПЫТАЕТСЯ НАС НАЕБАТЬ! ПРЕДПРИНИМАЕМ МЕРЫ!', 74331800)
+	// sendVkMessage('КТО-ТО ПЫТАЕТСЯ НАС НАЕБАТЬ! ПРЕДПРИНИМАЕМ МЕРЫ!', 170877706)
+	// sendVkMessage('КТО-ТО ПЫТАЕТСЯ НАС НАЕБАТЬ! ПРЕДПРИНИМАЕМ МЕРЫ!', 74331800)
 
 	var price = parseFloat(order.price) + 0.01;
 
@@ -288,19 +297,23 @@ function createNewMyOrder (price, count, market_hash_name, app_id) {
 
 				// sendVkMessage(`Дата изменения: ${getCurrentTime()}\n${data.orders[0].market_hash_name}  ${data.orders[0].buy_order_id}  был добавлен в таблицу!\nЦена: ${data.orders[0].price}$/${maxPrices[data.orders[0].market_hash_name]}$`, 170877706)
 				// sendVkMessage(`Дата изменения: ${getCurrentTime()}\n${data.orders[0].market_hash_name}  ${data.orders[0].buy_order_id}  был добавлен в таблицу!\nЦена: ${data.orders[0].price}$/${maxPrices[data.orders[0].market_hash_name]}$`, 74331800)
-				
+
 				sendVkMessage(
-					`${data.orders[0].market_hash_name} был обновлен!\n` + 
-					`ID:   ${data.orders[0].buy_order_id}` +
-					`Дата: ${getCurrentTime()}\n` + 
-					`Цена: ${data.orders[0].price}$/${maxPrices[data.orders[0].market_hash_name]}$`,
+					`${changeFontStyleToBold(data.orders[0].market_hash_name)} был обновлен!\n` +
+					`${changeFontStyleToBold("ID")}:&#8196;&#8195;&#8195;&#8195;${ data.orders[0].buy_order_id }\n` +
+					`${changeFontStyleToBold("Name:")}&#8196;&#8196;&#8195;${ data.orders[0].market_hash_name }\n` +
+					`${changeFontStyleToBold("Date")}: &#8196;&#8196;&#8196;&#8195;${ getCurrentTime()}\n` + 
+					`${changeFontStyleToBold("R Price")}: &#8195;${ data.orders[0].price }$\n` + 
+					`${changeFontStyleToBold("M Price")}:&#8196;&#8196;&#8196;${ maxPrices[data.orders[0].market_hash_name] }$`,
 				170877706);
 
 				sendVkMessage(
-					`${data.orders[0].market_hash_name} был обновлен!\n` + 
-					`ID:   ${data.orders[0].buy_order_id}` +
-					`Дата: ${getCurrentTime()}\n` + 
-					`Цена: ${data.orders[0].price}$/${maxPrices[data.orders[0].market_hash_name]}$`,
+					`${changeFontStyleToBold(data.orders[0].market_hash_name)} был обновлен!\n` +
+					`${changeFontStyleToBold("ID")}:&#8196;&#8195;&#8195;&#8195;${ data.orders[0].buy_order_id }\n` +
+					`${changeFontStyleToBold("Name:")}&#8196;&#8196;&#8195;${ data.orders[0].market_hash_name }\n` +
+					`${changeFontStyleToBold("Date")}: &#8196;&#8196;&#8196;&#8195;${ getCurrentTime()}\n` + 
+					`${changeFontStyleToBold("R Price")}: &#8195;${ data.orders[0].price }$\n` + 
+					`${changeFontStyleToBold("M Price")}:&#8196;&#8196;&#8196;${ maxPrices[data.orders[0].market_hash_name] }$`,
 				74331800);
 
 				ordersIDsList.push(data.orders[0].buy_order_id)
@@ -468,7 +481,7 @@ startVKBot((res, _isBTN, answerBackToVk) => {
 				mainTimer = mainTimer = setTimeout(startTimer, 10);
 				_isWorking = true;
 
-				answerBackToVk("Бот проверок запущен", false)
+				answerBackToVk("Бот проверок запущен", true)
 				break;
 
 			case "stop":
@@ -476,26 +489,26 @@ startVKBot((res, _isBTN, answerBackToVk) => {
 				clearTimeout(mainTimer);
 				_isWorking = false;
 
-				answerBackToVk("Бот проверок остановлен", false)
+				answerBackToVk("Бот проверок остановлен", true)
 				break;
 
 			case "all_active":
 				addAllMyOrdersToMonitoringList();
 
-				answerBackToVk("Все заказы успешно добавлены в список мониторинга", false)
+				answerBackToVk("Все заказы успешно добавлены в список мониторинга", true)
 				console.log('\x1b[36m[SkinBot] --> \x1b[0m','server is additing all orders to monitoring list\n')
 				break;
 
 			case "no_active":
 				deleteAllMyOrdersFromMonitoringList();
 
-				answerBackToVk("Все заказы успешно удалены из списка мониторинга", false)
+				answerBackToVk("Все заказы успешно удалены из списка мониторинга", true)
 				break;
 
 			case "clear_file":
 				clearSellOrdersListFile();
 
-				answerBackToVk("Файл очищен", false)
+				answerBackToVk("Файл очищен", true)
 				break;
 
 			case "delete_active_order":
@@ -539,11 +552,11 @@ startVKBot((res, _isBTN, answerBackToVk) => {
 								if ((wasDelivered == MY_GAMES.length) && (wasSent == MY_GAMES.length)) {
 									data.status = true;
 
-									answerBackToVk("Выберите из списка..", false, "delete_active_order", data)
+									answerBackToVk("Выберите из списка..", true, "delete_active_order", data)
 
 								} else if (wasSent == MY_GAMES.length) {
 									data.status = false;
-									answerBackToVk("Произошла ошибка на сервере..", false)
+									answerBackToVk("Произошла ошибка на сервере..", true)
 								}
 
 							} else {
@@ -565,11 +578,11 @@ startVKBot((res, _isBTN, answerBackToVk) => {
 
 
 			case "come_back":
-				answerBackToVk("Возврат в главное меню", false)
+				answerBackToVk("Возврат в главное меню", true)
 				break;
 
 			default:
-				answerBackToVk(`Ошибка. [ ${command[0]} ] Команда не найдена..`, false)
+				answerBackToVk(`Ошибка. [ ${command[0]} ] Команда не найдена..`, true)
 				console.log('\x1b[36m[SkinBot] --> \x1b[0m', "no command found...")
 		}
 	} else {
@@ -762,4 +775,13 @@ app.use('/api/orders/', routes.orders)
 // ##### STARTING SERVER #####
 app.listen(3000)
 console.log('\x1b[36m[SkinBot] --> \x1b[0m', `Starting server on \x1b[32mlocalhost:${3000}`)
-console.log('\x1b[36m[VK_BOT]  --> \x1b[0m', `Starting VK bot`)
+console.log('\x1b[36m[VK_BOT]  --> \x1b[0m', `Starting VK bot`);
+
+// sendVkMessage(
+// 	`${changeFontStyleToBold("Christmas Lights")} был обновлен!\n` +
+// 	`${changeFontStyleToBold("ID")}:&#8196;&#8195;&#8195;&#8195;570633793\n` +
+// 	`${changeFontStyleToBold("Name:")}&#8196;&#8196;&#8195;Christmas Lights\n` +
+// 	`${changeFontStyleToBold("Date")}: &#8196;&#8196;&#8196;&#8195;2019/11/29 13:04:35\n` + 
+// 	`${changeFontStyleToBold("R Price")}: &#8195;20.12$\n` + 
+// 	`${changeFontStyleToBold("M Price")}:&#8196;&#8196;&#8196;21.1$`,
+// 74331800);

@@ -137,7 +137,7 @@ exports.startVKBot = (callback) => {
 			vk.api.messages.send({
 				user_ids: [170877706, 74331800],
 				message: message,
-				keyboard: String(baseBuilder)
+				keyboard: String(tmpBuilder)
 			});
 		} else {
 			vk.api.messages.send({
@@ -163,8 +163,8 @@ exports.startVKBot = (callback) => {
 
 
 	vk.api.messages.send({
-		// user_ids: [170877706, 74331800],
-		user_ids: [170877706],
+		user_ids: [170877706, 74331800],
+		// user_ids: [170877706],
 		message: "[BOT] --> Бот начал свою работу",
 		keyboard: String(baseBuilder)
 	});
