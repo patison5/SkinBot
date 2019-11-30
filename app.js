@@ -7,6 +7,7 @@ const bodyParser 		= require("body-parser");
 const moment 			= require('moment');
 const cTable 			= require('console.table');
 const fs 				= require('fs');
+const colors 			= require('colors');
 
 const { getCurrentTime, 
 		changeFontStyleToBold }	= require('./plugins');
@@ -774,8 +775,14 @@ app.use('/api/orders/', routes.orders)
 
 // ##### STARTING SERVER #####
 app.listen(3000)
-console.log('\x1b[36m[SkinBot] --> \x1b[0m', `Starting server on \x1b[32mlocalhost:${3000}`)
-console.log('\x1b[36m[VK_BOT]  --> \x1b[0m', `Starting VK bot`);
+// console.log('\x1b[36m[SkinBot] --> \x1b[0m', `Starting server on \x1b[32mlocalhost:${3000}`)
+// console.log('\x1b[36m[VK_BOT]  --> \x1b[0m', `Starting VK bot`);
+
+
+console.log(colors.cyan('[SkinBot] -->'), `Starting server on \x1b[32mlocalhost:${3000}`)
+console.log(colors.cyan('[VK_BOT]  -->'), `Starting VK bot`);
+
+
 
 // sendVkMessage(
 // 	`${changeFontStyleToBold("Christmas Lights")} был обновлен!\n` +

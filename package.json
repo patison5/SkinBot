@@ -28,6 +28,7 @@
     "vk-io": "^4.0.0-rc.29"
   },
   "dependencies": {
+    "colors": "^1.4.0",
     "console.table": "^0.10.0",
     "node-vk-bot": "^1.2.3",
     "vk-bots": "0.0.3"
